@@ -1,3 +1,11 @@
+<?php
+
+require_once "../../Controller/ServiceProviderController.php";
+
+$controller = new ServiceProviderController();
+
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
