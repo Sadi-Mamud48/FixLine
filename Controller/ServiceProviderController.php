@@ -21,11 +21,25 @@ class ServiceProviderController
     public function __construct()
     {
         $this->model = new ServiceProvider();
+        $this->providerId = $this->resolveProviderId();
+    }
 
-        // In the full system this comes from the Authentication module after login.
-        // A demo fallback (id = 1, the seeded provider) is used so this module can be
-        // tested on its own before the login module is wired in.
-        $this->providerId = $_SESSION['provider_id'] ?? 1;
+    private function resolveProviderId(): int
+    {
+        if (!empty($_SESSION['provider_id'])) {
+            return (int) $_SESSION['provider_id'];
+        }
+
+        if (!empty($_SESSION['user_id'])) {
+            $providerId = $this->model->getProviderIdByUserId((int) $_SESSION['user_id']);
+            if ($providerId !== null) {
+                $_SESSION['provider_id'] = $providerId;
+                return $providerId;
+            }
+        }
+
+        // Fallback for local demo/testing only.
+        return 1;
     }
 
     // Simple internal router based on ?action=

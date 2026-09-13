@@ -27,6 +27,21 @@ class ServiceProvider
      *  PROFILE
      * ========================================================= */
 
+    // Find the provider record tied to a logged-in user
+    public function getProviderIdByUserId(int $userId): ?int
+    {
+        $sql = "SELECT id
+                FROM service_providers
+                WHERE user_id = :user_id
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['id'] : null;
+    }
+
     // Fetch the full profile (joined with users table) for one provider
     public function getProfile(int $providerId): ?array
     {
