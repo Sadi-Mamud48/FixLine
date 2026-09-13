@@ -386,7 +386,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div class="service-btn">Painter & Decorator</div>
             </a>
 
-            <a href="/FixLine/cindex.php?action=search&category=appliance" class="service-card">
+            <a href="/FixLine/cindex.php?action=search&category=repairer" class="service-card">
                 <div class="icon-circle">
                     <img src="../images/services/Appliance.png" alt="Appliance Repairer">
                 </div>

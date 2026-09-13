@@ -224,6 +224,17 @@ class ServiceProviderController
                         ? 'The customer request was accepted successfully.'
                         : 'This request is no longer available.';
                 }
+            } elseif (isset($_POST['complete_service_request'])) {
+                $requestId = (int) ($_POST['request_id'] ?? 0);
+
+                if ($requestId <= 0) {
+                    $message = 'No request selected.';
+                } else {
+                    $completed = $this->model->completeServiceRequest($this->providerId, $requestId);
+                    $message = $completed
+                        ? 'The customer request was marked as completed successfully.'
+                        : 'Only an accepted request can be completed.';
+                }
             } elseif (isset($_POST['reject_service_request'])) {
                 $requestId = (int) ($_POST['request_id'] ?? 0);
 

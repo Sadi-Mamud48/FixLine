@@ -262,7 +262,7 @@ class Customer {
             "SELECT id FROM bookings
              WHERE id = :booking_id AND user_id = :user_id
              AND service_id = :service_id
-             AND status IN ('confirmed', 'completed')"
+             AND status = 'completed'"
         );
         $stmt->execute([
             ':booking_id' => $bookingId,
@@ -271,7 +271,7 @@ class Customer {
         ]);
 
         if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-            throw new RuntimeException('Reviews are available only after the booking is accepted.');
+            throw new RuntimeException('Reviews are available only after the service is completed.');
         }
 
         $sql = "INSERT INTO reviews (booking_id, user_id, service_id, rating, comment)
@@ -307,7 +307,7 @@ class Customer {
              JOIN services s ON b.service_id = s.id
              WHERE b.id = :booking_id
              AND b.user_id = :user_id
-             AND b.status IN ('confirmed', 'completed')"
+             AND b.status = 'completed'"
         );
         $stmt->execute([
             ':booking_id' => $bookingId,
@@ -333,10 +333,12 @@ class Customer {
     public function getPaidPayments($userId) {
         $stmt = $this->db->prepare(
             "SELECT p.id AS payment_id, p.amount, p.paid_at,
-                    b.id AS booking_id, s.service_name
+                    b.id AS booking_id, s.service_name,
+                    r.status AS refund_status, r.reason AS refund_reason
              FROM payments p
              JOIN bookings b ON p.booking_id = b.id
              JOIN services s ON b.service_id = s.id
+             LEFT JOIN refund_requests r ON r.payment_id = p.id
              WHERE p.user_id = :user_id AND p.status = 'paid'
              ORDER BY p.paid_at DESC"
         );
