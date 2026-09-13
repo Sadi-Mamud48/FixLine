@@ -45,6 +45,26 @@ class Payment
         return $statement->fetchAll();
     }
 
+    public function createPayment($invoiceId, $paymentDate, $customerId, $customerName, $customerEmail, $paymentMethod, $amount)
+    {
+        $statement = $this->pdo->prepare(
+            "INSERT INTO payments
+                (invoice_id, customer_id, customer_name, customer_email, payment_method, amount, payment_date, status)
+             VALUES
+                (:invoice_id, :customer_id, :customer_name, :customer_email, :payment_method, :amount, :payment_date, 'Approved')"
+        );
+
+        $statement->execute([
+            'invoice_id' => $invoiceId,
+            'customer_id' => $customerId,
+            'customer_name' => $customerName,
+            'customer_email' => $customerEmail,
+            'payment_method' => $paymentMethod,
+            'amount' => $amount,
+            'payment_date' => $paymentDate . ' 00:00:00',
+        ]);
+    }
+
     public function getPendingPayouts()
     {
         $statement = $this->pdo->prepare(
