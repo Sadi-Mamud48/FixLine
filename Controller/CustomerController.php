@@ -1,0 +1,243 @@
+<?php
+require_once __DIR__ . '/../Config/Database.php';
+require_once __DIR__ . '/../Model/Customer.php';
+
+class CustomerController 
+{
+    private $customerModel;
+
+    public function __construct() {
+        $database = new Database();
+        $db = $database->getConnection();
+        $this->customerModel = new Customer($db);
+    }
+
+  
+    public function dashboard() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        require_once __DIR__ . '/../View/Customer/customer_dashboard.php';
+    }
+
+    public function accountSettings() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'] ?? 1;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                if (($_POST['settings_section'] ?? '') === 'account') {
+                    $phone = trim($_POST['phone'] ?? '');
+
+                    if (!preg_match('/^[0-9]{11}$/', $phone)) {
+                        throw new RuntimeException('Phone number must contain exactly 11 digits.');
+                    }
+
+                    $this->customerModel->updateAccount(
+                        $userId,
+                        $phone,
+                        $_POST['current_password'] ?? '',
+                        $_POST['new_password'] ?? ''
+                    );
+                } else {
+                    $profilePhoto = null;
+                    if (!empty($_FILES['profile_photo']['tmp_name'])) {
+                        if ($_FILES['profile_photo']['error'] !== UPLOAD_ERR_OK) {
+                            throw new RuntimeException('The profile photo could not be uploaded.');
+                        }
+
+                        $extension = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
+                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+                        if (!in_array($extension, $allowedExtensions, true)) {
+                            throw new RuntimeException('Please upload a JPG, PNG, or WEBP image.');
+                        }
+
+                        $directory = __DIR__ . '/../View/images/profiles';
+                        if (!is_dir($directory)) {
+                            mkdir($directory, 0755, true);
+                        }
+
+                        $filename = 'user_' . $userId . '.' . $extension;
+                        if (!move_uploaded_file($_FILES['profile_photo']['tmp_name'], $directory . '/' . $filename)) {
+                            throw new RuntimeException('The profile photo could not be saved.');
+                        }
+
+                        $profilePhoto = '/FixLine/View/images/profiles/' . $filename;
+                    }
+
+                    $this->customerModel->updateProfile(
+                        $userId,
+                        trim($_POST['first_name'] ?? ''),
+                        trim($_POST['last_name'] ?? ''),
+                        trim($_POST['address'] ?? ''),
+                        $profilePhoto
+                    );
+                }
+
+                $_SESSION['settings_message'] = 'Changes saved successfully.';
+            } catch (Throwable $exception) {
+                $_SESSION['settings_error'] = $exception->getMessage();
+            }
+
+            $tab = ($_POST['settings_section'] ?? 'profile') === 'account' ? 'account' : 'profile';
+            header("Location: /FixLine/index.php?action=account_settings&tab={$tab}");
+            exit();
+        }
+
+        $user = $this->customerModel->getUser($userId);
+        require_once __DIR__ . '/../View/Customer/account_settings.php';
+    }
+
+   
+    public function search() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $category = $_GET['category'] ?? null;
+        $keyword  = $_GET['search'] ?? null;
+
+        $services = $this->customerModel->searchServices($category, $keyword);
+        require_once __DIR__ . '/../View/Customer/search_dashboard.php';
+    }
+
+    
+    public function book() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId          = $_SESSION['user_id'] ?? 1;
+            $serviceId       = $_POST['service_id'];
+            $bookingDate     = $_POST['booking_date'];
+            $category        = $_POST['category'] ?? '';
+
+            try {
+                $bookingCreated = $this->customerModel->createBooking($userId, $serviceId, $bookingDate);
+
+                if ($bookingCreated) {
+                    $_SESSION['booking_message'] = 'Booking successful';
+                }
+            } catch (PDOException $exception) {
+                $_SESSION['booking_error'] = $exception->getMessage();
+            }
+
+            $categoryQuery = $category !== '' ? '&category=' . rawurlencode($category) : '';
+            header("Location: /FixLine/index.php?action=search{$categoryQuery}");
+            exit();
+        }
+    }
+
+  
+    public function myBookings() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId   = $_SESSION['user_id'] ?? 1;
+        $bookings = $this->customerModel->getCustomerBookings($userId);
+        require_once __DIR__ . '/../View/Customer/my_bookings.php';
+    }
+
+    public function review() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $bookingId  = $_POST['booking_id'];
+            $userId     = $_SESSION['user_id'] ?? 1;
+            $serviceId  = $_POST['service_id'];
+            $rating     = $_POST['rating'];
+            $comment    = $_POST['comment'];
+
+            try {
+                $reviewSubmitted = $this->customerModel->submitReview($bookingId, $userId, $serviceId, $rating, $comment);
+
+                if ($reviewSubmitted) {
+                    $_SESSION['booking_message'] = 'Review submitted successfully';
+                }
+            } catch (Throwable $exception) {
+                $_SESSION['booking_error'] = $exception->getMessage();
+            }
+
+            header("Location: index.php?action=my_bookings");
+            exit();
+        }
+    }
+
+    public function cancelBooking() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_SESSION['user_id'] ?? 1;
+            $bookingId = (int) ($_POST['booking_id'] ?? 0);
+
+            if ($this->customerModel->cancelBooking($bookingId, $userId)) {
+                $_SESSION['booking_message'] = 'Booking cancelled.';
+            } else {
+                $_SESSION['booking_error'] = 'This booking cannot be cancelled.';
+            }
+        }
+
+        header('Location: /FixLine/index.php?action=my_bookings');
+        exit();
+    }
+
+    public function payment() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'] ?? 1;
+        $bookingId = (int) ($_POST['booking_id'] ?? 0);
+
+        try {
+            if ($this->customerModel->createPayment($bookingId, $userId)) {
+                $_SESSION['booking_message'] = 'Payment successful';
+            }
+        } catch (Throwable $exception) {
+            $_SESSION['booking_error'] = $exception->getMessage();
+        }
+
+        header('Location: /FixLine/index.php?action=my_bookings');
+        exit();
+    }
+
+    public function refunds() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'] ?? 1;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $paymentId = (int) ($_POST['payment_id'] ?? 0);
+            $reason = trim($_POST['reason'] ?? '');
+
+            if ($reason === '') {
+                $_SESSION['refund_error'] = 'Please enter a reason for the refund.';
+            } elseif ($this->customerModel->requestRefund($paymentId, $userId, $reason)) {
+                $_SESSION['refund_message'] = 'Refund request submitted successfully.';
+            } else {
+                $_SESSION['refund_error'] = 'This payment is not available for a refund request.';
+            }
+
+            header('Location: /FixLine/View/Customer/refunds.php');
+            exit();
+        }
+
+        $payments = $this->customerModel->getPaidPayments($userId);
+        require_once __DIR__ . '/../View/Customer/refunds.php';
+    }
+
+}
+
+?>
