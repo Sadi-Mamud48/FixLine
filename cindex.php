@@ -42,6 +42,10 @@ switch ($action) {
         $customerController->requestService();
         break;
 
+    case 'post_job':
+        $customerController->postJob();
+        break;
+
     case 'my_bookings':
         $customerController->myBookings();
         break;

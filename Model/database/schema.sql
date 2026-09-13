@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS services (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     provider_id INT UNSIGNED DEFAULT NULL,
+    job_application_id INT UNSIGNED DEFAULT NULL,
     service_name VARCHAR(100) NOT NULL,
     category VARCHAR(50) NOT NULL,
     description TEXT,
@@ -90,6 +91,10 @@ CREATE TABLE IF NOT EXISTS job_applications (
     FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
     UNIQUE KEY unique_application (job_id, provider_id)
 ) ENGINE=InnoDB;
+
+ALTER TABLE services
+    ADD CONSTRAINT fk_services_application
+    FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE SET NULL;
 
 ALTER TABLE service_requests
     ADD CONSTRAINT fk_service_requests_application

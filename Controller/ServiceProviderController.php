@@ -253,17 +253,26 @@ class ServiceProviderController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_job'])) {
             $jobId         = (int) ($_POST['job_id'] ?? 0);
+            $serviceId     = (int) ($_POST['service_id'] ?? 0);
             $coverNote     = trim($_POST['cover_note'] ?? '');
-            $proposedPrice = $_POST['proposed_price'] !== '' ? (float) $_POST['proposed_price'] : null;
 
             $job = $jobId ? $this->model->getJobById($jobId) : null;
+            $service = $serviceId ? $this->model->getService($this->providerId, $serviceId) : null;
 
             if (!$job) {
                 $message = 'Selected job could not be found.';
+            } elseif (!$service) {
+                $message = 'Please choose one of the services in your profile.';
             } elseif ($coverNote === '') {
                 $message = 'Please write a short note explaining why you are a good fit.';
             } else {
-                $applied = $this->model->applyForJob($this->providerId, $jobId, $coverNote, $proposedPrice);
+                $applied = $this->model->applyForJob(
+                    $this->providerId,
+                    $jobId,
+                    $service['service_name'],
+                    $coverNote,
+                    (float) $service['price']
+                );
                 $message = $applied
                     ? 'Application submitted successfully!'
                     : 'You may have already applied for this job.';
@@ -271,6 +280,7 @@ class ServiceProviderController
         }
 
         $provider    = $this->model->getProfile($this->providerId);
+        $providerServices = $this->model->getServices($this->providerId);
         $jobs        = $this->model->getAvailableJobs($this->providerId, $provider['profession'] ?? null);
         $appliedJobs = $this->model->getAppliedJobs($this->providerId);
 

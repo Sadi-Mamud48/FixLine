@@ -1,16 +1,4 @@
 <?php
-/**
- * FixLine - Model
- * -----------------------------------
- * ServiceProvider.php
- *
- * Handles ALL database interaction for the Service Provider role:
- *  - Profile (read / update / profile picture)
- *  - Job listing + job applications
- *  - Earnings
- *
- * The Controller talks to this class only. Views never touch the DB directly.
- */
 
 require_once __DIR__ . '/database/Database.php';
 
@@ -88,6 +76,22 @@ class ServiceProvider
         $stmt->execute([':provider_id' => $providerId]);
 
         return $stmt->fetchAll();
+    }
+
+    public function getService(int $providerId, int $serviceId): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, service_name, category, description, price
+             FROM services
+             WHERE id = :service_id AND provider_id = :provider_id
+             LIMIT 1"
+        );
+        $stmt->execute([
+            ':service_id' => $serviceId,
+            ':provider_id' => $providerId,
+        ]);
+
+        return $stmt->fetch() ?: null;
     }
 
     public function saveService(int $providerId, array $data): bool
@@ -201,6 +205,7 @@ class ServiceProvider
                 FROM service_requests sr
                 LEFT JOIN users u ON u.id = sr.customer_id
                 WHERE sr.provider_id = :provider_id
+                  AND sr.status <> 'rejected'
                 ORDER BY sr.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
@@ -283,27 +288,61 @@ class ServiceProvider
     }
 
     // Insert a new job application ("apply for job" form)
-    public function applyForJob(int $providerId, int $jobId, string $coverNote, ?float $proposedPrice): bool
+    public function applyForJob(int $providerId, int $jobId, string $serviceName, string $coverNote, ?float $proposedPrice): bool
     {
-        $sql = "INSERT INTO job_applications (job_id, provider_id, cover_note, proposed_price, status)
-                VALUES (:job_id, :provider_id, :cover_note, :proposed_price, 'pending')";
+        $job = $this->getJobById($jobId);
+        if (!$job) {
+            return false;
+        }
 
-        $stmt = $this->db->prepare($sql);
+        $servicePrice = $proposedPrice ?? (float) ($job['budget'] ?? 0);
 
-        return $stmt->execute([
-            ':job_id'         => $jobId,
-            ':provider_id'    => $providerId,
-            ':cover_note'     => $coverNote,
-            ':proposed_price' => $proposedPrice,
-        ]);
+        $this->db->beginTransaction();
+        try {
+            $application = $this->db->prepare(
+                "INSERT INTO job_applications (job_id, provider_id, cover_note, proposed_price, status)
+                 VALUES (:job_id, :provider_id, :cover_note, :proposed_price, 'pending')"
+            );
+            $application->execute([
+                ':job_id' => $jobId,
+                ':provider_id' => $providerId,
+                ':cover_note' => $coverNote,
+                ':proposed_price' => $proposedPrice,
+            ]);
+
+            $applicationId = (int) $this->db->lastInsertId();
+            $service = $this->db->prepare(
+                "INSERT INTO services
+                    (provider_id, job_application_id, service_name, category, description, price)
+                 VALUES (:provider_id, :application_id, :service_name, :category, :description, :price)"
+            );
+            $service->execute([
+                ':provider_id' => $providerId,
+                ':application_id' => $applicationId,
+                ':service_name' => $serviceName,
+                ':category' => $job['category'],
+                ':description' => $job['description'] ?: $coverNote,
+                ':price' => $servicePrice,
+            ]);
+
+            $this->db->commit();
+            return $applicationId > 0;
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
     }
 
     // History of jobs this provider has applied to
     public function getAppliedJobs(int $providerId): array
     {
-        $sql = "SELECT ja.*, j.title, j.category, j.location, j.budget, j.status AS job_status
+        $sql = "SELECT ja.*, j.title, j.category, j.location, j.budget, j.status AS job_status,
+                       s.service_name
                 FROM job_applications ja
                 INNER JOIN jobs j ON j.id = ja.job_id
+                LEFT JOIN services s ON s.job_application_id = ja.id
                 WHERE ja.provider_id = :provider_id
                 ORDER BY ja.applied_at DESC";
 

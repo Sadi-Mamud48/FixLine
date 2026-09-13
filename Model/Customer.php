@@ -75,8 +75,8 @@ class Customer {
                   AND sp.status = 'approved'
                                     AND ja.status = 'pending'
                                     AND NOT EXISTS (
-                                            SELECT 1 FROM service_requests sr
-                                            WHERE sr.job_application_id = ja.id
+                      SELECT 1 FROM services s
+                      WHERE s.job_application_id = ja.id
                                     )";
         $params = [':customer_id' => $customerId];
 
@@ -98,16 +98,17 @@ class Customer {
         try {
             $sql = "INSERT INTO service_requests
                         (customer_id, provider_id, service_id, title, category, description, location, budget, status)
-                    SELECT :customer_id, sp.id, :service_id, :title, :category, :description, :location, :budget, 'new'
+                    SELECT :customer_id, sp.id, :request_service_id, :title, :category, :description, :location, :budget, 'new'
                 FROM service_providers sp
                 JOIN services s ON s.provider_id = sp.id
-                WHERE sp.id = :provider_id AND s.id = :service_id AND sp.status = 'approved'";
+                WHERE sp.id = :provider_id AND s.id = :provider_service_id AND sp.status = 'approved'";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 ':customer_id' => $customerId,
                 ':provider_id' => $providerId,
-                ':service_id' => $data['service_id'],
+                ':request_service_id' => $data['service_id'],
+                ':provider_service_id' => $data['service_id'],
                 ':title' => $data['title'],
                 ':category' => $data['category'],
                 ':description' => $data['description'],
@@ -213,6 +214,22 @@ class Customer {
         ]);
     }
 
+    public function createJob($customerId, $data) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO jobs (customer_id, title, category, description, location, budget, status)
+             VALUES (:customer_id, :title, :category, :description, :location, :budget, 'open')"
+        );
+
+        return $stmt->execute([
+            ':customer_id' => $customerId,
+            ':title' => $data['title'],
+            ':category' => $data['category'],
+            ':description' => $data['description'],
+            ':location' => $data['location'],
+            ':budget' => $data['budget']
+        ]);
+    }
+
    
     public function getCustomerBookings($userId) {
         $sql = "SELECT b.*, COALESCE(s.service_name, sr.title) AS service_name,
@@ -226,6 +243,7 @@ class Customer {
             LEFT JOIN service_providers sp ON sp.id = sr.provider_id
             LEFT JOIN users u ON u.id = sp.user_id
                 WHERE b.user_id = :user_id
+                AND b.status <> 'cancelled'
                 AND NOT EXISTS (
                     SELECT 1 FROM payments p
                     WHERE p.booking_id = b.id

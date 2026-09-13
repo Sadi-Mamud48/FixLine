@@ -27,7 +27,13 @@ $activePage = 'apply_job';
             <h2 style="color:#fff;margin-top:0;">Available Jobs — <?= htmlspecialchars($provider['profession'] ?? '') ?></h2>
 
             <?php if (empty($jobs)): ?>
-                <div class="fx-card-solid">No open jobs matching your profession right now. Check back soon.</div>
+                <div class="fx-card-solid">
+                    <?php if (empty($provider['profession'])): ?>
+                        Add your profession in your profile first. Customers' jobs are matched to that category.
+                    <?php else: ?>
+                        No open jobs matching <?= htmlspecialchars($provider['profession']) ?> right now. A customer can post a job from the customer dashboard.
+                    <?php endif; ?>
+                </div>
             <?php else: ?>
                 <div class="fx-job-list" style="margin-bottom:36px;">
                     <?php foreach ($jobs as $job): ?>
@@ -55,13 +61,25 @@ $activePage = 'apply_job';
                             <input type="hidden" name="job_id" value="<?= (int) $job['id'] ?>">
 
                             <div class="fx-form-group">
+                                <label for="service_id_<?= (int) $job['id'] ?>">Service You Will Provide</label>
+                                <select id="service_id_<?= (int) $job['id'] ?>" name="service_id" class="fx-service-select" data-job-id="<?= (int) $job['id'] ?>" required>
+                                    <option value="">Choose a service from your profile</option>
+                                    <?php foreach ($providerServices as $service): ?>
+                                        <option value="<?= (int) $service['id'] ?>" data-price="<?= htmlspecialchars((string) $service['price']) ?>">
+                                            <?= htmlspecialchars($service['service_name']) ?> — Tk <?= number_format((float) $service['price'], 2) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="fx-form-group">
                                 <label for="cover_note_<?= (int) $job['id'] ?>">Why are you a good fit?</label>
                                 <textarea id="cover_note_<?= (int) $job['id'] ?>" name="cover_note" required></textarea>
                             </div>
 
                             <div class="fx-form-group">
-                                <label for="proposed_price_<?= (int) $job['id'] ?>">Your Proposed Price (Tk)</label>
-                                <input type="number" step="0.01" min="0" id="proposed_price_<?= (int) $job['id'] ?>" name="proposed_price">
+                                <label for="proposed_price_<?= (int) $job['id'] ?>">Service Cost (Tk)</label>
+                                <input type="number" step="0.01" min="0" id="proposed_price_<?= (int) $job['id'] ?>" name="proposed_price" readonly required>
                             </div>
 
                             <button type="submit" name="apply_job" value="1" class="fx-btn">Submit Application</button>
@@ -76,19 +94,21 @@ $activePage = 'apply_job';
                 <tr>
                     <th>Job Title</th>
                     <th>Category</th>
-                    <th>Proposed Price</th>
+                    <th>Service</th>
+                    <th>Cost</th>
                     <th>Applied On</th>
                     <th>Status</th>
                 </tr>
                 </thead>
                 <tbody>
                 <?php if (empty($appliedJobs)): ?>
-                    <tr><td colspan="5">You haven't applied to any jobs yet.</td></tr>
+                    <tr><td colspan="6">You haven't applied to any jobs yet.</td></tr>
                 <?php else: ?>
                     <?php foreach ($appliedJobs as $app): ?>
                         <tr>
                             <td><?= htmlspecialchars($app['title']) ?></td>
                             <td><?= htmlspecialchars($app['category']) ?></td>
+                            <td><?= htmlspecialchars($app['service_name'] ?? $app['title']) ?></td>
                             <td>Tk <?= number_format((float) $app['proposed_price'], 2) ?></td>
                             <td><?= htmlspecialchars(date('d M Y', strtotime($app['applied_at']))) ?></td>
                             <td><span class="fx-badge fx-badge-<?= htmlspecialchars($app['status']) ?>"><?= htmlspecialchars(ucfirst($app['status'])) ?></span></td>
@@ -110,6 +130,13 @@ $activePage = 'apply_job';
         btn.addEventListener('click', function () {
             const form = document.getElementById('fx-apply-form-' + btn.dataset.jobId);
             form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+        });
+    });
+
+    document.querySelectorAll('.fx-service-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            const priceInput = document.getElementById('proposed_price_' + select.dataset.jobId);
+            priceInput.value = select.selectedOptions[0]?.dataset.price || '';
         });
     });
 </script>
