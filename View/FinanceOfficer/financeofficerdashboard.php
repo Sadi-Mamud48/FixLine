@@ -278,9 +278,9 @@ if (session_status() === PHP_SESSION_NONE) {
         </form>
 
         <div class="header-right">
-            <img src="../images/notification.png" alt="Notifications" title="Notifications">
+            <img src="../images/fnotification.png" alt="Notifications" title="Notifications">
             <img src="../images/chat.png" alt="Messages" title="Messages">
-            <img src="../images/settings.png" alt="Settings" title="Settings">
+            <img src="../images/fsettings.png" alt="Settings" title="Settings">
         </div>
     </header>
 
