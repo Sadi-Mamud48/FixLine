@@ -36,6 +36,7 @@ class AuthController
 
             $destination = match ($user['role']) {
                 'provider' => '/FixLine/service_provider.php?action=dashboard',
+                'moderator' => '/FixLine/moderator.php?action=dashboard',
                 default => '/FixLine/View/Customer/customer_dashboard.php'
             };
             header("Location: {$destination}");
