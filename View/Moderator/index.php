@@ -66,6 +66,8 @@
     .search-bar i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #4a5568; }
     
     .header-icons { display: flex; gap: 24px; font-size: 22px; cursor: pointer; }
+    .logout-btn { background: #ffffff; color: #553c9a; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-size: 14px; font-weight: 600; }
+    .logout-btn:hover { background: #eee8ff; }
     
     .sidebar-menu { display: flex; flex-direction: column; gap: 20px; z-index: 5; position: relative; max-width: 350px; }
     .menu-item { display: flex; align-items: center; text-decoration: none; gap: 15px; }
@@ -113,29 +115,27 @@
         </div>
 
         <div class="header-icons">
-          <i class="fa-regular fa-bell"></i>
-          <i class="fa-regular fa-comment-dots"></i>
-          <i class="fa-solid fa-gear"></i>
+         <a href="/FixLine/cindex.php?action=logout" class="logout-btn">Log out</a>
         </div>
       </header>
 
       <div class="sidebar-menu">
-        <a href="customers.php" class="menu-item">
+        <a href="/FixLine/moderator.php?action=customers" class="menu-item">
           <div class="icon-circle"><img src="../images/services/Customers.png" alt="Customers"></div>
           <button class="menu-btn">Customers</button>
         </a>
 
-        <a href="providers.php" class="menu-item">
+        <a href="/FixLine/moderator.php?action=providers" class="menu-item">
           <div class="icon-circle"><img src="../images/services/Provider.png" alt="Providers"></div>
           <button class="menu-btn">Providers</button>
         </a>
 
-        <a href="complaints.php" class="menu-item">
+        <a href="/FixLine/moderator.php?action=complaints" class="menu-item">
           <div class="icon-circle"><img src="../images/services/complaint.png" alt="Complaints"></div>
           <button class="menu-btn">Complaints</button>
         </a>
 
-        <a href="account_management.php" class="menu-item">
+        <a href="/FixLine/moderator.php?action=account_management" class="menu-item">
           <div class="icon-circle"><img src="../images/services/Account%20management.png" alt="Account Management"></div>
           <button class="menu-btn">Account Management</button>
         </a>

@@ -6,7 +6,7 @@ $moderatorModel = new Moderator();
 // Handle Approve / Reject Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'], $_POST['provider_id'])) {
     $moderatorModel->updateProviderStatus($_POST['provider_id'], $_POST['action_type']);
-    header("Location: providers.php");
+    header('Location: /FixLine/moderator.php?action=providers');
     exit();
 }
 
@@ -39,7 +39,7 @@ $pendingProviders = $moderatorModel->getProvidersByStatus('pending');
     <div class="dashboard-main">
       <header class="header">
         <h2>Provider Applications</h2>
-        <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="/FixLine/moderator.php?action=dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
       <div class="content-area">
         <table class="data-table">
