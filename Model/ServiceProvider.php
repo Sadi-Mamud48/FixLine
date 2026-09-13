@@ -27,6 +27,21 @@ class ServiceProvider
      *  PROFILE
      * ========================================================= */
 
+    // Find the provider record tied to a logged-in user
+    public function getProviderIdByUserId(int $userId): ?int
+    {
+        $sql = "SELECT id
+                FROM service_providers
+                WHERE user_id = :user_id
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+        $row = $stmt->fetch();
+
+        return $row ? (int) $row['id'] : null;
+    }
+
     // Fetch the full profile (joined with users table) for one provider
     public function getProfile(int $providerId): ?array
     {
@@ -62,6 +77,51 @@ class ServiceProvider
             ':bio'        => $data['bio'],
             ':id'         => $providerId,
         ]);
+    }
+
+    public function getServices(int $providerId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, service_name, category, description, price
+             FROM services WHERE provider_id = :provider_id ORDER BY service_name"
+        );
+        $stmt->execute([':provider_id' => $providerId]);
+
+        return $stmt->fetchAll();
+    }
+
+    public function saveService(int $providerId, array $data): bool
+    {
+        if ($data['id'] > 0) {
+            $stmt = $this->db->prepare(
+                "UPDATE services
+                 SET service_name = :service_name, category = :category,
+                     description = :description, price = :price
+                 WHERE id = :id AND provider_id = :provider_id"
+            );
+        } else {
+            $stmt = $this->db->prepare(
+                "INSERT INTO services
+                    (provider_id, service_name, category, description, price)
+                 VALUES (:provider_id, :service_name, :category, :description, :price)"
+            );
+        }
+
+        $params = [
+            ':service_name' => $data['service_name'],
+            ':category' => $data['category'],
+            ':description' => $data['description'],
+            ':price' => $data['price']
+        ];
+
+        if ($data['id'] > 0) {
+            $params[':id'] = $data['id'];
+            $params[':provider_id'] = $providerId;
+        } else {
+            $params[':provider_id'] = $providerId;
+        }
+
+        return $stmt->execute($params);
     }
 
     // Save the new profile picture path (used by the AJAX upload endpoint)
@@ -104,7 +164,7 @@ class ServiceProvider
         $params = [':provider_id' => $providerId];
 
         if (!empty($profession)) {
-            $sql .= " AND j.category = :category";
+            $sql .= " AND LOWER(j.category) = LOWER(:category)";
             $params[':category'] = $profession;
         }
 
@@ -151,22 +211,37 @@ class ServiceProvider
 
     public function updateServiceRequestStatus(int $providerId, int $requestId, string $status): bool
     {
-        $allowed = ['new', 'read', 'accepted', 'rejected'];
+        $allowed = ['new', 'accepted', 'applied', 'rejected'];
         if (!in_array($status, $allowed, true)) {
             return false;
         }
 
         $sql = "UPDATE service_requests
                 SET status = :status
-                WHERE id = :id AND provider_id = :provider_id";
+                WHERE id = :id AND provider_id = :provider_id AND status = 'new'";
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $stmt->execute([
             ':status'      => $status,
             ':id'          => $requestId,
             ':provider_id' => $providerId,
         ]);
+
+        if ($stmt->rowCount() > 0) {
+            $bookingStatus = $status === 'accepted' ? 'confirmed' : 'cancelled';
+            $booking = $this->db->prepare(
+                "UPDATE bookings
+                 SET status = :booking_status
+                 WHERE service_request_id = :request_id AND status = 'pending'"
+            );
+            $booking->execute([
+                ':booking_status' => $bookingStatus,
+                ':request_id' => $requestId
+            ]);
+        }
+
+        return $stmt->rowCount() > 0;
     }
 
     public function getServiceRequestById(int $requestId): ?array

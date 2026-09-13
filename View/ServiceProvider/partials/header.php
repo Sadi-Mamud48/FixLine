@@ -14,9 +14,14 @@ $activePage = $activePage ?? '';
     </div>
 
     <div class="fx-nav-icons">
-        <span title="Notifications">&#128276;</span>
-        <span title="Messages">&#128172;</span>
-        <span title="Settings">&#9881;</span>
+        <details class="fx-settings-menu">
+            <summary>
+                <img src="View/images/csettings.png" alt="Settings" title="Settings">
+            </summary>
+            <div class="fx-settings-dropdown">
+                <a href="/FixLine/cindex.php?action=logout">Log out</a>
+            </div>
+        </details>
     </div>
 </div>
 

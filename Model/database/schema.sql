@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS services (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    provider_id INT UNSIGNED DEFAULT NULL,
     service_name VARCHAR(100) NOT NULL,
     category VARCHAR(50) NOT NULL,
     description TEXT,
@@ -42,6 +43,10 @@ CREATE TABLE IF NOT EXISTS service_providers (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+ALTER TABLE services
+    ADD CONSTRAINT fk_services_provider
+    FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE SET NULL;
+
 CREATE TABLE IF NOT EXISTS jobs (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED DEFAULT NULL,
@@ -59,15 +64,18 @@ CREATE TABLE IF NOT EXISTS service_requests (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT UNSIGNED NOT NULL,
     provider_id INT UNSIGNED NOT NULL,
+    service_id INT UNSIGNED DEFAULT NULL,
+    job_application_id INT UNSIGNED DEFAULT NULL,
     title VARCHAR(150) NOT NULL,
     category VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     location VARCHAR(150),
     budget DECIMAL(10,2) DEFAULT NULL,
-    status ENUM('new','read','applied','rejected') NOT NULL DEFAULT 'new',
+    status ENUM('new','accepted','applied','rejected') NOT NULL DEFAULT 'new',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE
+    FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS job_applications (
@@ -82,6 +90,10 @@ CREATE TABLE IF NOT EXISTS job_applications (
     FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
     UNIQUE KEY unique_application (job_id, provider_id)
 ) ENGINE=InnoDB;
+
+ALTER TABLE service_requests
+    ADD CONSTRAINT fk_service_requests_application
+    FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS bookings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

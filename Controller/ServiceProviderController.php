@@ -21,11 +21,25 @@ class ServiceProviderController
     public function __construct()
     {
         $this->model = new ServiceProvider();
+        $this->providerId = $this->resolveProviderId();
+    }
 
-        // In the full system this comes from the Authentication module after login.
-        // A demo fallback (id = 1, the seeded provider) is used so this module can be
-        // tested on its own before the login module is wired in.
-        $this->providerId = $_SESSION['provider_id'] ?? 1;
+    private function resolveProviderId(): int
+    {
+        if (!empty($_SESSION['provider_id'])) {
+            return (int) $_SESSION['provider_id'];
+        }
+
+        if (!empty($_SESSION['user_id'])) {
+            $providerId = $this->model->getProviderIdByUserId((int) $_SESSION['user_id']);
+            if ($providerId !== null) {
+                $_SESSION['provider_id'] = $providerId;
+                return $providerId;
+            }
+        }
+
+        // Fallback for local demo/testing only.
+        return 1;
     }
 
     // Simple internal router based on ?action=
@@ -76,7 +90,24 @@ class ServiceProviderController
         $message = '';
 
         // Handle the text-field part of the profile form (normal POST, no AJAX)
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_service'])) {
+            $serviceName = trim($_POST['service_name'] ?? '');
+            $category = trim($_POST['category'] ?? '');
+            $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
+
+            if ($serviceName === '' || $category === '' || $price === false || $price < 0) {
+                $message = 'Enter a service name, category, and valid cost.';
+            } else {
+                $this->model->saveService($this->providerId, [
+                    'id' => (int) ($_POST['service_id'] ?? 0),
+                    'service_name' => $serviceName,
+                    'category' => $category,
+                    'description' => trim($_POST['service_description'] ?? ''),
+                    'price' => $price
+                ]);
+                $message = 'Service saved successfully.';
+            }
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             $data = [
                 'profession' => trim($_POST['profession'] ?? ''),
                 'affiliate'  => trim($_POST['affiliate'] ?? ''),
@@ -93,6 +124,7 @@ class ServiceProviderController
         }
 
         $provider = $this->model->getProfile($this->providerId);
+        $providerServices = $this->model->getServices($this->providerId);
 
         require __DIR__ . '/../View/ServiceProvider/profile.php';
     }
