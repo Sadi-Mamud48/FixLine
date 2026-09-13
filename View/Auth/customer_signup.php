@@ -49,7 +49,7 @@ unset($_SESSION['auth_error']);
             <h1>Welcome to<br>FixLine</h1>
             <?php if ($error !== null): ?><div class="notice"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <div class="tabs"><a href="login.php">Log in</a><a class="active" href="customer_signup.php">Sign in</a></div>
-            <form method="post" action="/FixLine/index.php?action=customer_signup">
+            <form method="post" action="/FixLine/cindex.php?action=customer_signup">
                 <label for="account_type">Account type</label>
                 <select id="account_type" class="account-type" name="account_type">
                     <option value="customer" selected>Customer</option>

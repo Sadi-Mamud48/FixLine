@@ -20,7 +20,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <main class="card">
         <h1>Provider Dashboard</h1>
         <p>Your provider account is registered. Booking management will appear here.</p>
-        <a href="/FixLine/index.php?action=logout">Log out</a>
+        <a href="/FixLine/cindex.php?action=logout">Log out</a>
     </main>
 </body>
 </html>

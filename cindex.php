@@ -38,6 +38,10 @@ switch ($action) {
         $customerController->search();
         break;
 
+    case 'request_service':
+        $customerController->requestService();
+        break;
+
     case 'my_bookings':
         $customerController->myBookings();
         break;

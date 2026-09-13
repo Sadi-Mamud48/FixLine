@@ -92,7 +92,7 @@ if (!isset($payments)) {
                     <h2><?= htmlspecialchars($payment['service_name']) ?></h2>
                     <p><strong>Amount paid:</strong> <?= htmlspecialchars(number_format((float) $payment['amount'], 2)) ?></p>
                     <p><strong>Paid on:</strong> <?= htmlspecialchars($payment['paid_at']) ?></p>
-                    <form action="/FixLine/index.php?action=refunds" method="post">
+                    <form action="/FixLine/cindex.php?action=refunds" method="post">
                         <input type="hidden" name="payment_id" value="<?= (int) $payment['payment_id'] ?>">
                         <label>
                             Reason for refund

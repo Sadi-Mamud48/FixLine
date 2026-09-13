@@ -340,21 +340,22 @@ if (session_status() === PHP_SESSION_NONE) {
             <span>Customers Dashboard</span>
         </div>
 
-        <form class="search-container" action="/FixLine/index.php" method="get">
+        <form class="search-container" action="/FixLine/cindex.php" method="get">
             <input type="hidden" name="action" value="search">
             <input type="search" name="search" placeholder="Search services or providers" aria-label="Search services or providers">
         </form>
 
         <div class="header-right">
+            <a class="bookings-link" href="/FixLine/cindex.php?action=request_service">Request Service</a>
             <a class="bookings-link" href="my_bookings.php">My Bookings</a>
             <a class="refund-link" href="/FixLine/View/Customer/refunds.php">Refunds</a>
             <details class="settings-menu">
                 <summary>
-                    <img src="../images/settings.png" alt="Settings" title="Settings">
+                    <img src="../images/csettings.png" alt="Settings" title="Settings">
                 </summary>
                 <div class="settings-dropdown">
                     <a href="/FixLine/View/Customer/account_settings.php?tab=profile">Account Settings</a>
-                    <a href="/FixLine/index.php?action=logout">Log out</a>
+                    <a href="/FixLine/cindex.php?action=logout">Log out</a>
                 </div>
             </details>
         </div>
@@ -365,28 +366,28 @@ if (session_status() === PHP_SESSION_NONE) {
        
         <div class="services-menu">
             
-            <a href="/FixLine/index.php?action=search&category=plumber" class="service-card">
+            <a href="/FixLine/cindex.php?action=search&category=plumber" class="service-card">
                 <div class="icon-circle">
                     <img src="../images/services/technician.png" alt="Plumber"> <!-- Ai bhabei bakiki image load korte hobe-->
                 </div>
                 <div class="service-btn">Plumber</div>
             </a>
 
-            <a href="/FixLine/index.php?action=search&category=electrician" class="service-card">
+            <a href="/FixLine/cindex.php?action=search&category=electrician" class="service-card">
                 <div class="icon-circle">
                     <img src="../images/services/Electrician.png" alt="Electrician">
                 </div>
                 <div class="service-btn">Electrician</div>
             </a>
 
-            <a href="/FixLine/index.php?action=search&category=painter" class="service-card">
+            <a href="/FixLine/cindex.php?action=search&category=painter" class="service-card">
                 <div class="icon-circle">
                     <img src="../images/services/painter.png" alt="Painter">
                 </div>
                 <div class="service-btn">Painter & Decorator</div>
             </a>
 
-            <a href="/FixLine/index.php?action=search&category=appliance" class="service-card">
+            <a href="/FixLine/cindex.php?action=search&category=appliance" class="service-card">
                 <div class="icon-circle">
                     <img src="../images/services/Appliance.png" alt="Appliance Repairer">
                 </div>

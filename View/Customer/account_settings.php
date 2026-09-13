@@ -97,7 +97,7 @@ $profilePhoto .= '?v=' . time();
                 <?php if ($tab === 'account'): ?>
                     <h2>Account management</h2>
                     <p>Make changes to your personal information or account type.</p>
-                    <form method="post" action="/FixLine/index.php?action=account_settings&tab=account">
+                    <form method="post" action="/FixLine/cindex.php?action=account_settings&tab=account">
                         <input type="hidden" name="settings_section" value="account">
                         <label>
                             Your account
@@ -133,7 +133,7 @@ $profilePhoto .= '?v=' . time();
                     </form>
                 <?php else: ?>
                     <h2>Profile</h2>
-                    <form method="post" action="/FixLine/index.php?action=account_settings&tab=profile" enctype="multipart/form-data">
+                    <form method="post" action="/FixLine/cindex.php?action=account_settings&tab=profile" enctype="multipart/form-data">
                         <input type="hidden" name="settings_section" value="profile">
                         <label>
                             Profile Photo

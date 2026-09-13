@@ -8,24 +8,196 @@ class Customer {
 
    
     public function searchServices($category = null, $keyword = null) {
-        $sql = "SELECT * FROM services WHERE 1=1";
+        $sql = "SELECT s.*, sp.id AS provider_id, sp.profession, sp.affiliate,
+                       u.name AS provider_name
+                FROM services s
+                JOIN service_providers sp ON sp.id = s.provider_id
+                JOIN users u ON u.id = sp.user_id
+                WHERE sp.status = 'approved'";
         $params = [];
 
         if (!empty($category)) {
-            $sql .= " AND category = :category";
+            $sql .= " AND LOWER(s.category) = LOWER(:category)";
             $params[':category'] = $category;
         }
 
         if (!empty($keyword)) {
-            $sql .= " AND (service_name LIKE :keyword_name OR description LIKE :keyword_description)";
+            $sql .= " AND (s.service_name LIKE :keyword_name OR s.description LIKE :keyword_description
+                         OR u.name LIKE :keyword_provider)";
             $keywordValue = "%" . $keyword . "%";
             $params[':keyword_name'] = $keywordValue;
             $params[':keyword_description'] = $keywordValue;
+            $params[':keyword_provider'] = $keywordValue;
         }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getServiceProviders() {
+        $stmt = $this->db->query(
+            "SELECT sp.id, sp.profession, u.name
+             FROM service_providers sp
+             JOIN users u ON u.id = sp.user_id
+             WHERE sp.status = 'approved'
+             ORDER BY u.name"
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getServiceCatalog() {
+        $stmt = $this->db->query(
+            "SELECT s.id AS service_id, s.service_name, s.category, s.price,
+                    sp.id AS provider_id, sp.profession, sp.affiliate, u.name AS provider_name
+             FROM services s
+             JOIN service_providers sp ON sp.id = s.provider_id
+             JOIN users u ON u.id = sp.user_id
+             WHERE sp.status = 'approved'
+             ORDER BY s.category, u.name, s.service_name"
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getJobApplicationsForCustomer($customerId, $category = null) {
+        $sql = "SELECT ja.id AS application_id, ja.provider_id,
+                       ja.proposed_price AS price, j.id AS job_id,
+                       j.title AS service_name, j.category, j.description,
+                       j.location, sp.profession, sp.affiliate,
+                       u.name AS provider_name
+                FROM job_applications ja
+                JOIN jobs j ON j.id = ja.job_id
+                JOIN service_providers sp ON sp.id = ja.provider_id
+                JOIN users u ON u.id = sp.user_id
+                WHERE j.customer_id = :customer_id
+                  AND sp.status = 'approved'
+                                    AND ja.status = 'pending'
+                                    AND NOT EXISTS (
+                                            SELECT 1 FROM service_requests sr
+                                            WHERE sr.job_application_id = ja.id
+                                    )";
+        $params = [':customer_id' => $customerId];
+
+        if (!empty($category)) {
+            $sql .= " AND LOWER(j.category) = LOWER(:category)";
+            $params[':category'] = $category;
+        }
+
+        $sql .= " ORDER BY ja.applied_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function createServiceRequest($customerId, $providerId, $data) {
+        $this->db->beginTransaction();
+
+        try {
+            $sql = "INSERT INTO service_requests
+                        (customer_id, provider_id, service_id, title, category, description, location, budget, status)
+                    SELECT :customer_id, sp.id, :service_id, :title, :category, :description, :location, :budget, 'new'
+                FROM service_providers sp
+                JOIN services s ON s.provider_id = sp.id
+                WHERE sp.id = :provider_id AND s.id = :service_id AND sp.status = 'approved'";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                ':customer_id' => $customerId,
+                ':provider_id' => $providerId,
+                ':service_id' => $data['service_id'],
+                ':title' => $data['title'],
+                ':category' => $data['category'],
+                ':description' => $data['description'],
+                ':location' => $data['location'],
+                ':budget' => $data['budget']
+            ]);
+
+            if ($stmt->rowCount() === 0) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $requestId = (int) $this->db->lastInsertId();
+            $booking = $this->db->prepare(
+                "INSERT INTO bookings (user_id, service_request_id, service_id, booking_date, status)
+                 VALUES (:user_id, :request_id, :service_id, :booking_date, 'pending')"
+            );
+            $booking->execute([
+                ':user_id' => $customerId,
+                ':request_id' => $requestId,
+                ':service_id' => $data['service_id'],
+                ':booking_date' => $data['booking_date']
+            ]);
+
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $exception;
+        }
+
+        return true;
+    }
+
+    public function createJobApplicationRequest($customerId, $applicationId, $data) {
+        $stmt = $this->db->prepare(
+            "SELECT ja.provider_id, j.title, j.category, j.description, j.location, ja.proposed_price
+             FROM job_applications ja
+             JOIN jobs j ON j.id = ja.job_id
+             JOIN service_providers sp ON sp.id = ja.provider_id
+             WHERE ja.id = :application_id AND j.customer_id = :customer_id
+               AND ja.status = 'pending' AND sp.status = 'approved'"
+        );
+        $stmt->execute([
+            ':application_id' => $applicationId,
+            ':customer_id' => $customerId
+        ]);
+        $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$application) {
+            return false;
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $request = $this->db->prepare(
+                "INSERT INTO service_requests
+                       (customer_id, provider_id, job_application_id, title, category, description, location, budget, status)
+                   VALUES (:customer_id, :provider_id, :application_id, :title, :category, :description, :location, :budget, 'new')"
+            );
+            $request->execute([
+                ':customer_id' => $customerId,
+                ':provider_id' => $application['provider_id'],
+                ':application_id' => $applicationId,
+                ':title' => $application['title'],
+                ':category' => $application['category'],
+                ':description' => $data['description'] ?: $application['description'],
+                ':location' => $application['location'],
+                ':budget' => $application['proposed_price']
+            ]);
+
+            $booking = $this->db->prepare(
+                "INSERT INTO bookings (user_id, service_request_id, booking_date, status)
+                 VALUES (:user_id, :request_id, :booking_date, 'pending')"
+            );
+            $booking->execute([
+                ':user_id' => $customerId,
+                ':request_id' => $this->db->lastInsertId(),
+                ':booking_date' => $data['booking_date']
+            ]);
+            $this->db->commit();
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $exception;
+        }
+
+        return true;
     }
 
    
@@ -43,11 +215,17 @@ class Customer {
 
    
     public function getCustomerBookings($userId) {
-        $sql = "SELECT b.*, s.service_name, s.description, s.price
+        $sql = "SELECT b.*, COALESCE(s.service_name, sr.title) AS service_name,
+                   COALESCE(s.description, sr.description) AS description,
+                   COALESCE(s.price, sr.budget) AS price,
+                   sp.profession, sp.affiliate, u.name AS provider_name,
+                   sr.status AS request_status
                 FROM bookings b
-                JOIN services s ON b.service_id = s.id
+                LEFT JOIN services s ON b.service_id = s.id
+            LEFT JOIN service_requests sr ON sr.id = b.service_request_id
+            LEFT JOIN service_providers sp ON sp.id = sr.provider_id
+            LEFT JOIN users u ON u.id = sp.user_id
                 WHERE b.user_id = :user_id
-                AND b.status <> 'cancelled'
                 AND NOT EXISTS (
                     SELECT 1 FROM payments p
                     WHERE p.booking_id = b.id

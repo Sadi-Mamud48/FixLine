@@ -35,7 +35,7 @@ class AuthController
             $_SESSION['user_role'] = $user['role'];
 
             $destination = match ($user['role']) {
-                'provider' => '/FixLine/View/ServiceProvider/index.php',
+                'provider' => '/FixLine/service_provider.php?action=dashboard',
                 default => '/FixLine/View/Customer/customer_dashboard.php'
             };
             header("Location: {$destination}");

@@ -90,7 +90,24 @@ class ServiceProviderController
         $message = '';
 
         // Handle the text-field part of the profile form (normal POST, no AJAX)
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_service'])) {
+            $serviceName = trim($_POST['service_name'] ?? '');
+            $category = trim($_POST['category'] ?? '');
+            $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
+
+            if ($serviceName === '' || $category === '' || $price === false || $price < 0) {
+                $message = 'Enter a service name, category, and valid cost.';
+            } else {
+                $this->model->saveService($this->providerId, [
+                    'id' => (int) ($_POST['service_id'] ?? 0),
+                    'service_name' => $serviceName,
+                    'category' => $category,
+                    'description' => trim($_POST['service_description'] ?? ''),
+                    'price' => $price
+                ]);
+                $message = 'Service saved successfully.';
+            }
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             $data = [
                 'profession' => trim($_POST['profession'] ?? ''),
                 'affiliate'  => trim($_POST['affiliate'] ?? ''),
@@ -107,6 +124,7 @@ class ServiceProviderController
         }
 
         $provider = $this->model->getProfile($this->providerId);
+        $providerServices = $this->model->getServices($this->providerId);
 
         require __DIR__ . '/../View/ServiceProvider/profile.php';
     }

@@ -86,11 +86,13 @@ if (!isset($bookings)) {
 				<article class="booking">
 					<h2><?= htmlspecialchars($booking['service_name']) ?></h2>
 					<p><strong>Date:</strong> <?= htmlspecialchars($booking['booking_date']) ?></p>
-					<p><strong>Status:</strong> <?= htmlspecialchars($booking['status']) ?></p>
+					<p><strong>Provider:</strong> <?= htmlspecialchars($booking['provider_name'] ?? 'Service provider') ?></p>
+					<p><strong>Affiliate:</strong> <?= htmlspecialchars($booking['affiliate'] ?? 'Not specified') ?></p>
+					<p><strong>Status:</strong> <?= htmlspecialchars($booking['request_status'] === 'rejected' ? 'Declined' : $booking['status']) ?></p>
 					<p><strong>Price:</strong> <?= htmlspecialchars(number_format((float) $booking['price'], 2)) ?></p>
 					<div class="booking-actions">
-						<?php if (in_array($booking['status'], ['confirmed', 'completed'], true)): ?>
-							<form id="review-form-<?= (int) $booking['id'] ?>" class="review-form" action="/FixLine/index.php?action=review" method="post">
+						<?php if (!empty($booking['service_id']) && in_array($booking['status'], ['confirmed', 'completed'], true)): ?>
+							<form id="review-form-<?= (int) $booking['id'] ?>" class="review-form" action="/FixLine/cindex.php?action=review" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<input type="hidden" name="service_id" value="<?= (int) $booking['service_id'] ?>">
 								<label>
@@ -103,13 +105,13 @@ if (!isset($bookings)) {
 								</label>
 							</form>
 							<button type="submit" form="review-form-<?= (int) $booking['id'] ?>">Review</button>
-							<form action="/FixLine/index.php?action=payment" method="post">
+							<form action="/FixLine/cindex.php?action=payment" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<button class="pay-button" type="submit">Pay</button>
 							</form>
 						<?php endif; ?>
-						<?php if (in_array($booking['status'], ['pending', 'confirmed'], true)): ?>
-							<form action="/FixLine/index.php?action=cancel_booking" method="post">
+						<?php if ($booking['status'] === 'pending'): ?>
+							<form action="/FixLine/cindex.php?action=cancel_booking" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<button class="cancel-button" type="submit">Cancel</button>
 							</form>

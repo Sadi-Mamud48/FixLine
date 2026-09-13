@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $services = $services ?? [];
+$jobApplications = $jobApplications ?? [];
 $bookingMessage = $_SESSION['booking_message'] ?? null;
 unset($_SESSION['booking_message']);
 $bookingError = $_SESSION['booking_error'] ?? null;
@@ -75,23 +76,60 @@ unset($_SESSION['booking_error']);
 		<a href="View/Customer/customer_dashboard.php">Back to Dashboard</a>
 	</div>
 
-	<?php if (empty($services)): ?>
-		<div class="empty">No services found. Add services to the services table and try again.</div>
+	<?php if (empty($services) && empty($jobApplications)): ?>
+		<div class="empty">No services or provider job applications found in this category.</div>
 	<?php else: ?>
 		<div class="results">
 			<?php foreach ($services as $service): ?>
 				<article class="service-card">
 					<h2><?= htmlspecialchars($service['service_name']) ?></h2>
 					<p><?= htmlspecialchars($service['description'] ?? '') ?></p>
-					<p><strong>Price:</strong> <?= htmlspecialchars($service['price']) ?></p>
-					<form action="/FixLine/index.php?action=book" method="post">
+					<p><strong>Provider:</strong> <?= htmlspecialchars($service['provider_name'] ?? '') ?></p>
+					<p><strong>Affiliate:</strong> <?= htmlspecialchars($service['affiliate'] ?? 'Not specified') ?></p>
+					<p><strong>Cost:</strong> Tk <?= htmlspecialchars(number_format((float) $service['price'], 2)) ?></p>
+					<form action="/FixLine/cindex.php?action=request_service" method="post">
 						<input type="hidden" name="service_id" value="<?= (int) $service['id'] ?>">
-						<input type="hidden" name="category" value="<?= htmlspecialchars($service['category'] ?? '') ?>">
+						<input type="hidden" name="provider_id" value="<?= (int) $service['provider_id'] ?>">
+						<input type="hidden" name="title" value="<?= htmlspecialchars($service['service_name'], ENT_QUOTES) ?>">
+						<input type="hidden" name="category" value="<?= htmlspecialchars($service['category'] ?? '', ENT_QUOTES) ?>">
+						<label>
+							Details
+							<textarea name="description" rows="3" required placeholder="Describe the work you need"></textarea>
+						</label>
+						<label>
+							Location
+							<input type="text" name="location" maxlength="150" required>
+						</label>
 						<label>
 							Booking date
-							<input type="date" name="booking_date" required>
+							<input type="date" name="booking_date" min="<?= date('Y-m-d') ?>" required>
 						</label>
-						<button type="submit">Book Service</button>
+						<button type="submit">Request Service</button>
+					</form>
+				</article>
+			<?php endforeach; ?>
+
+			<?php foreach ($jobApplications as $application): ?>
+				<article class="service-card">
+					<h2><?= htmlspecialchars($application['service_name']) ?></h2>
+					<p><?= htmlspecialchars($application['description'] ?? '') ?></p>
+					<p><strong>Provider:</strong> <?= htmlspecialchars($application['provider_name']) ?></p>
+					<p><strong>Affiliate:</strong> <?= htmlspecialchars($application['affiliate'] ?? 'Not specified') ?></p>
+					<p><strong>Proposed cost:</strong> Tk <?= htmlspecialchars(number_format((float) $application['price'], 2)) ?></p>
+					<form action="/FixLine/cindex.php?action=request_service" method="post">
+						<input type="hidden" name="application_id" value="<?= (int) $application['application_id'] ?>">
+						<input type="hidden" name="provider_id" value="<?= (int) $application['provider_id'] ?>">
+						<input type="hidden" name="title" value="<?= htmlspecialchars($application['service_name'], ENT_QUOTES) ?>">
+						<input type="hidden" name="category" value="<?= htmlspecialchars($application['category'], ENT_QUOTES) ?>">
+						<label>
+							Details
+							<textarea name="description" rows="3" required placeholder="Describe the work you need"></textarea>
+						</label>
+						<label>
+							Service date
+							<input type="date" name="booking_date" min="<?= date('Y-m-d') ?>" required>
+						</label>
+						<button type="submit">Request This Provider</button>
 					</form>
 				</article>
 			<?php endforeach; ?>

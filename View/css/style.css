@@ -103,6 +103,49 @@ a {
     font-size: 1.1rem;
 }
 
+.fx-settings-menu {
+    position: relative;
+}
+
+.fx-settings-menu summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.fx-settings-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.fx-settings-menu summary img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    display: block;
+}
+
+.fx-settings-dropdown {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    z-index: 10;
+    width: 180px;
+    padding: 6px;
+    background: var(--fx-white);
+    border-radius: var(--fx-radius-sm);
+    box-shadow: var(--fx-shadow);
+}
+
+.fx-settings-dropdown a {
+    display: block;
+    padding: 10px 12px;
+    color: var(--fx-text-dark);
+    font-size: 0.85rem;
+}
+
+.fx-settings-dropdown a:hover {
+    background: var(--fx-purple-pale);
+}
+
 /* Center search bar, matching the proposal's navbar mockup */
 .fx-search-bar {
     display: flex;

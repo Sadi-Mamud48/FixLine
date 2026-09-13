@@ -68,6 +68,34 @@ $activePage = 'profile';
 
                     <button type="submit" name="update_profile" value="1" class="fx-btn">Save Changes</button>
                 </form>
+
+                <h3 style="color:var(--fx-purple-dark);margin:32px 0 12px;">Services and Costs</h3>
+                <?php foreach (($providerServices ?? []) as $service): ?>
+                    <form action="service_provider.php?action=profile" method="POST" style="margin-bottom:16px;">
+                        <input type="hidden" name="service_id" value="<?= (int) $service['id'] ?>">
+                        <div class="fx-form-group">
+                            <label>Service name <input type="text" name="service_name" value="<?= htmlspecialchars($service['service_name']) ?>" required></label>
+                        </div>
+                        <div class="fx-form-group">
+                            <label>Category <input type="text" name="category" value="<?= htmlspecialchars($service['category']) ?>" required></label>
+                        </div>
+                        <div class="fx-form-group">
+                            <label>Cost (Tk) <input type="number" name="price" min="0" step="0.01" value="<?= htmlspecialchars($service['price']) ?>" required></label>
+                        </div>
+                        <div class="fx-form-group">
+                            <label>Description <textarea name="service_description"><?= htmlspecialchars($service['description'] ?? '') ?></textarea></label>
+                        </div>
+                        <button type="submit" name="save_service" value="1" class="fx-btn">Update Service</button>
+                    </form>
+                <?php endforeach; ?>
+
+                <form action="service_provider.php?action=profile" method="POST">
+                    <div class="fx-form-group"><label>Service name <input type="text" name="service_name" required></label></div>
+                    <div class="fx-form-group"><label>Category <input type="text" name="category" required></label></div>
+                    <div class="fx-form-group"><label>Cost (Tk) <input type="number" name="price" min="0" step="0.01" required></label></div>
+                    <div class="fx-form-group"><label>Description <textarea name="service_description"></textarea></label></div>
+                    <button type="submit" name="save_service" value="1" class="fx-btn">Add Service</button>
+                </form>
             </div>
         </div>
 

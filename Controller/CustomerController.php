@@ -84,7 +84,7 @@ class CustomerController
             }
 
             $tab = ($_POST['settings_section'] ?? 'profile') === 'account' ? 'account' : 'profile';
-            header("Location: /FixLine/index.php?action=account_settings&tab={$tab}");
+            header("Location: /FixLine/cindex.php?action=account_settings&tab={$tab}");
             exit();
         }
 
@@ -102,7 +102,71 @@ class CustomerController
         $keyword  = $_GET['search'] ?? null;
 
         $services = $this->customerModel->searchServices($category, $keyword);
+        $jobApplications = $this->customerModel->getJobApplicationsForCustomer(
+            (int) ($_SESSION['user_id'] ?? 0),
+            $category
+        );
         require_once __DIR__ . '/../View/Customer/search_dashboard.php';
+    }
+
+    public function requestService() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $services = $this->customerModel->getServiceCatalog();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $customerId = $_SESSION['user_id'] ?? 0;
+            $providerId = (int) ($_POST['provider_id'] ?? 0);
+            $serviceId = (int) ($_POST['service_id'] ?? 0);
+            $applicationId = (int) ($_POST['application_id'] ?? 0);
+            $title = trim($_POST['title'] ?? '');
+            $category = trim($_POST['category'] ?? '');
+            $description = trim($_POST['description'] ?? '');
+            $location = trim($_POST['location'] ?? '');
+            $budgetInput = trim($_POST['budget'] ?? '');
+            $budget = $budgetInput === '' ? null : (float) $budgetInput;
+            $bookingDate = trim($_POST['booking_date'] ?? '');
+
+            if ($customerId <= 0) {
+                $_SESSION['request_error'] = 'Please log in before requesting a service.';
+            } elseif ($providerId <= 0 || ($serviceId <= 0 && $applicationId <= 0) || $title === '' || $category === '' || $description === '' || $bookingDate === '') {
+                $_SESSION['request_error'] = 'Please complete all required request fields.';
+            } elseif ($budget !== null && $budget < 0) {
+                $_SESSION['request_error'] = 'Budget cannot be negative.';
+            } elseif (!DateTime::createFromFormat('Y-m-d', $bookingDate) || $bookingDate < date('Y-m-d')) {
+                $_SESSION['request_error'] = 'Please choose a valid future service date.';
+            } else {
+                try {
+                    $requestData = [
+                        'service_id' => $serviceId,
+                        'title' => $title,
+                        'category' => $category,
+                        'description' => $description,
+                        'location' => $location,
+                        'budget' => $budget,
+                        'booking_date' => $bookingDate
+                    ];
+                    $created = $applicationId > 0
+                        ? $this->customerModel->createJobApplicationRequest($customerId, $applicationId, $requestData)
+                        : $this->customerModel->createServiceRequest($customerId, $providerId, $requestData);
+
+                    if ($created) {
+                        $_SESSION['request_message'] = 'Service request sent successfully.';
+                    } else {
+                        $_SESSION['request_error'] = 'The selected provider is not available.';
+                    }
+                } catch (Throwable $exception) {
+                    $_SESSION['request_error'] = 'Unable to send the service request.';
+                }
+            }
+
+            header('Location: /FixLine/cindex.php?action=request_service');
+            exit();
+        }
+
+        require_once __DIR__ . '/../View/Customer/request_service.php';
     }
 
     
@@ -128,7 +192,7 @@ class CustomerController
             }
 
             $categoryQuery = $category !== '' ? '&category=' . rawurlencode($category) : '';
-            header("Location: /FixLine/index.php?action=search{$categoryQuery}");
+            header("Location: /FixLine/cindex.php?action=search{$categoryQuery}");
             exit();
         }
     }
@@ -166,7 +230,7 @@ class CustomerController
                 $_SESSION['booking_error'] = $exception->getMessage();
             }
 
-            header("Location: index.php?action=my_bookings");
+            header("Location: cindex.php?action=my_bookings");
             exit();
         }
     }
@@ -187,7 +251,7 @@ class CustomerController
             }
         }
 
-        header('Location: /FixLine/index.php?action=my_bookings');
+        header('Location: /FixLine/cindex.php?action=my_bookings');
         exit();
     }
 
@@ -207,7 +271,7 @@ class CustomerController
             $_SESSION['booking_error'] = $exception->getMessage();
         }
 
-        header('Location: /FixLine/index.php?action=my_bookings');
+        header('Location: /FixLine/cindex.php?action=my_bookings');
         exit();
     }
 
