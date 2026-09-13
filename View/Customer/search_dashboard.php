@@ -92,10 +92,8 @@ unset($_SESSION['booking_error']);
 						<input type="hidden" name="provider_id" value="<?= (int) $service['provider_id'] ?>">
 						<input type="hidden" name="title" value="<?= htmlspecialchars($service['service_name'], ENT_QUOTES) ?>">
 						<input type="hidden" name="category" value="<?= htmlspecialchars($service['category'] ?? '', ENT_QUOTES) ?>">
-						<label>
-							Details
-							<textarea name="description" rows="3" required placeholder="Describe the work you need"></textarea>
-						</label>
+						<input type="hidden" name="return_category" value="<?= htmlspecialchars($_GET['category'] ?? '', ENT_QUOTES) ?>">
+						<input type="hidden" name="return_search" value="<?= htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES) ?>">
 						<label>
 							Location
 							<input type="text" name="location" maxlength="150" required>
@@ -121,10 +119,8 @@ unset($_SESSION['booking_error']);
 						<input type="hidden" name="provider_id" value="<?= (int) $application['provider_id'] ?>">
 						<input type="hidden" name="title" value="<?= htmlspecialchars($application['service_name'], ENT_QUOTES) ?>">
 						<input type="hidden" name="category" value="<?= htmlspecialchars($application['category'], ENT_QUOTES) ?>">
-						<label>
-							Details
-							<textarea name="description" rows="3" required placeholder="Describe the work you need"></textarea>
-						</label>
+						<input type="hidden" name="return_category" value="<?= htmlspecialchars($_GET['category'] ?? '', ENT_QUOTES) ?>">
+						<input type="hidden" name="return_search" value="<?= htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES) ?>">
 						<label>
 							Service date
 							<input type="date" name="booking_date" min="<?= date('Y-m-d') ?>" required>

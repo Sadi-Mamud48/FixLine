@@ -346,7 +346,6 @@ if (session_status() === PHP_SESSION_NONE) {
         </form>
 
         <div class="header-right">
-            <a class="bookings-link" href="/FixLine/cindex.php?action=request_service">Request Service</a>
             <a class="bookings-link" href="my_bookings.php">My Bookings</a>
             <a class="refund-link" href="/FixLine/View/Customer/refunds.php">Refunds</a>
             <details class="settings-menu">

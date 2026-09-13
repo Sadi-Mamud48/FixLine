@@ -128,15 +128,29 @@ class CustomerController
             $budgetInput = trim($_POST['budget'] ?? '');
             $budget = $budgetInput === '' ? null : (float) $budgetInput;
             $bookingDate = trim($_POST['booking_date'] ?? '');
+            $returnCategory = trim($_POST['return_category'] ?? '');
+            $returnSearch = trim($_POST['return_search'] ?? '');
+            $returnUrl = '/FixLine/cindex.php?action=search';
+
+            if ($returnCategory !== '') {
+                $returnUrl .= '&category=' . rawurlencode($returnCategory);
+            }
+            if ($returnSearch !== '') {
+                $returnUrl .= '&search=' . rawurlencode($returnSearch);
+            }
+
+            if ($description === '' && $title !== '') {
+                $description = 'Customer requested: ' . $title;
+            }
 
             if ($customerId <= 0) {
-                $_SESSION['request_error'] = 'Please log in before requesting a service.';
-            } elseif ($providerId <= 0 || ($serviceId <= 0 && $applicationId <= 0) || $title === '' || $category === '' || $description === '' || $bookingDate === '') {
-                $_SESSION['request_error'] = 'Please complete all required request fields.';
+                $_SESSION['booking_error'] = 'Please log in before requesting a service.';
+            } elseif ($providerId <= 0 || ($serviceId <= 0 && $applicationId <= 0) || $title === '' || $category === '' || $bookingDate === '') {
+                $_SESSION['booking_error'] = 'Please complete all required request fields.';
             } elseif ($budget !== null && $budget < 0) {
-                $_SESSION['request_error'] = 'Budget cannot be negative.';
+                $_SESSION['booking_error'] = 'Budget cannot be negative.';
             } elseif (!DateTime::createFromFormat('Y-m-d', $bookingDate) || $bookingDate < date('Y-m-d')) {
-                $_SESSION['request_error'] = 'Please choose a valid future service date.';
+                $_SESSION['booking_error'] = 'Please choose a valid future service date.';
             } else {
                 try {
                     $requestData = [
@@ -153,20 +167,64 @@ class CustomerController
                         : $this->customerModel->createServiceRequest($customerId, $providerId, $requestData);
 
                     if ($created) {
-                        $_SESSION['request_message'] = 'Service request sent successfully.';
+                        $_SESSION['booking_message'] = 'Request sent';
+                        header('Location: ' . $returnUrl);
+                        exit();
                     } else {
-                        $_SESSION['request_error'] = 'The selected provider is not available.';
+                        $_SESSION['booking_error'] = 'The selected provider is not available.';
                     }
                 } catch (Throwable $exception) {
-                    $_SESSION['request_error'] = 'Unable to send the service request.';
+                    $_SESSION['booking_error'] = 'Unable to send the service request.';
                 }
             }
 
-            header('Location: /FixLine/cindex.php?action=request_service');
+            header('Location: ' . $returnUrl);
             exit();
         }
 
         require_once __DIR__ . '/../View/Customer/request_service.php';
+    }
+
+    public function postJob() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $customerId = (int) ($_SESSION['user_id'] ?? 0);
+            $title = trim($_POST['title'] ?? '');
+            $category = trim($_POST['category'] ?? '');
+            $description = trim($_POST['description'] ?? '');
+            $location = trim($_POST['location'] ?? '');
+            $budgetInput = trim($_POST['budget'] ?? '');
+            $budget = $budgetInput === '' ? null : (float) $budgetInput;
+
+            if ($customerId <= 0) {
+                $_SESSION['job_error'] = 'Please log in before posting a job.';
+            } elseif ($title === '' || $category === '' || $description === '') {
+                $_SESSION['job_error'] = 'Please complete all required job fields.';
+            } elseif ($budget !== null && $budget < 0) {
+                $_SESSION['job_error'] = 'Budget cannot be negative.';
+            } else {
+                try {
+                    $this->customerModel->createJob($customerId, [
+                        'title' => $title,
+                        'category' => $category,
+                        'description' => $description,
+                        'location' => $location,
+                        'budget' => $budget
+                    ]);
+                    $_SESSION['job_message'] = 'Job posted successfully.';
+                } catch (Throwable $exception) {
+                    $_SESSION['job_error'] = 'Unable to post the job.';
+                }
+            }
+
+            header('Location: /FixLine/cindex.php?action=post_job');
+            exit();
+        }
+
+        require_once __DIR__ . '/../View/Customer/post_job.php';
     }
 
     
