@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../Model/Moderator.php';
 $moderatorModel = new Moderator();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_id'])) {
-    $moderatorModel->updateProviderStatus($_POST['suspend_id'], 'suspended');
-    header("Location: account_management.php");
+    $moderatorModel->updateProviderStatus($_POST['suspend_id'], 'rejected');
+    header('Location: /FixLine/moderator.php?action=account_management');
     exit();
 }
 
@@ -29,7 +29,7 @@ $approvedProviders = $moderatorModel->getProvidersByStatus('approved');
     .data-table { width: 100%; border-collapse: collapse; text-align: left; }
     .data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; }
     .btn-suspend { background: #e53e3e; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-    .status-active { color: #38a169; font-weight: bold; }
+    .status-active { color: #0cc631; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -37,8 +37,8 @@ $approvedProviders = $moderatorModel->getProvidersByStatus('approved');
   <div class="dashboard-card">
     <div class="dashboard-main">
       <header class="header">
-        <h2>Verified Service Technicians Monitoring</h2>
-        <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <h2>Service Provider Management</h2>
+        <a href="/FixLine/moderator.php?action=dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
       <div class="content-area">
         <table class="data-table">
@@ -60,11 +60,11 @@ $approvedProviders = $moderatorModel->getProvidersByStatus('approved');
                   <td><?= htmlspecialchars($p['name']); ?></td>
                   <td><?= htmlspecialchars($p['email']); ?></td>
                   <td><?= htmlspecialchars($p['service_type']); ?></td>
-                  <td><span class="status-active"><i class="fa-solid fa-circle-check"></i> Verified</span></td>
+                  <td><span class="status-active">Verified</span></td>
                   <td>
                     <form method="POST">
                       <input type="hidden" name="suspend_id" value="<?= $p['id']; ?>">
-                      <button type="submit" class="btn-suspend">Revoke / Suspend</button>
+                      <button type="submit" class="btn-suspend">Revoke</button>
                     </form>
                   </td>
                 </tr>
