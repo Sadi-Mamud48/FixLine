@@ -91,7 +91,7 @@ if (!isset($bookings)) {
 					<p><strong>Status:</strong> <?= htmlspecialchars($booking['request_status'] === 'rejected' ? 'Declined' : $booking['status']) ?></p>
 					<p><strong>Price:</strong> <?= htmlspecialchars(number_format((float) $booking['price'], 2)) ?></p>
 					<div class="booking-actions">
-						<?php if (!empty($booking['service_id']) && in_array($booking['status'], ['confirmed', 'completed'], true)): ?>
+						<?php if (!empty($booking['service_id']) && $booking['status'] === 'completed'): ?>
 							<form id="review-form-<?= (int) $booking['id'] ?>" class="review-form" action="/FixLine/cindex.php?action=review" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<input type="hidden" name="service_id" value="<?= (int) $booking['service_id'] ?>">

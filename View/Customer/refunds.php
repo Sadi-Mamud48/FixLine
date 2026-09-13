@@ -67,6 +67,14 @@ if (!isset($payments)) {
             color: #fff;
             cursor: pointer;
         }
+        .status-pending {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #fff3cd;
+            color: #6b4e00;
+            font-weight: 700;
+        }
         .empty { padding: 20px; background: #fff; color: #222; border-radius: 8px; }
     </style>
 </head>
@@ -92,14 +100,23 @@ if (!isset($payments)) {
                     <h2><?= htmlspecialchars($payment['service_name']) ?></h2>
                     <p><strong>Amount paid:</strong> <?= htmlspecialchars(number_format((float) $payment['amount'], 2)) ?></p>
                     <p><strong>Paid on:</strong> <?= htmlspecialchars($payment['paid_at']) ?></p>
-                    <form action="/FixLine/cindex.php?action=refunds" method="post">
-                        <input type="hidden" name="payment_id" value="<?= (int) $payment['payment_id'] ?>">
-                        <label>
-                            Reason for refund
-                            <textarea name="reason" required></textarea>
-                        </label>
-                        <button type="submit">Request Refund</button>
-                    </form>
+                    <?php if (!empty($payment['refund_status'])): ?>
+                        <p><strong>Refund status:</strong>
+                            <span class="status-pending">
+                                <?= htmlspecialchars($payment['refund_status'] === 'requested' ? 'Pending' : ucfirst($payment['refund_status'])) ?>
+                            </span>
+                        </p>
+                        <p><strong>Reason:</strong> <?= htmlspecialchars($payment['refund_reason']) ?></p>
+                    <?php else: ?>
+                        <form action="/FixLine/cindex.php?action=refunds" method="post">
+                            <input type="hidden" name="payment_id" value="<?= (int) $payment['payment_id'] ?>">
+                            <label>
+                                Reason for refund
+                                <textarea name="reason" required></textarea>
+                            </label>
+                            <button type="submit">Request Refund</button>
+                        </form>
+                    <?php endif; ?>
                 </article>
             <?php endforeach; ?>
         <?php endif; ?>

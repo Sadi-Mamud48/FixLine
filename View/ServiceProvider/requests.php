@@ -45,8 +45,14 @@ $activePage = 'requests';
 
                             <p><?= nl2br(htmlspecialchars($request['description'])) ?></p>
 
-                            <?php if (($request['status'] ?? 'new') === 'accepted' || ($request['status'] ?? 'new') === 'rejected'): ?>
+                            <?php if (($request['status'] ?? 'new') === 'accepted'): ?>
                                 <div class="fx-message-status"><?= ucfirst(htmlspecialchars($request['status'])) ?></div>
+                                <form action="service_provider.php?action=requests" method="POST" style="display:inline; margin-top:12px;">
+                                    <input type="hidden" name="request_id" value="<?= (int) $request['id'] ?>">
+                                    <button type="submit" name="complete_service_request" value="1" class="fx-btn">Complete</button>
+                                </form>
+                            <?php elseif (($request['status'] ?? 'new') === 'rejected'): ?>
+                                <div class="fx-message-status">Rejected</div>
                             <?php else: ?>
                                 <div style="display:flex; gap:12px; flex-wrap:wrap;">
                                     <form action="service_provider.php?action=requests" method="POST" style="display:inline;">

@@ -206,6 +206,11 @@ class ServiceProvider
                 LEFT JOIN users u ON u.id = sr.customer_id
                 WHERE sr.provider_id = :provider_id
                   AND sr.status <> 'rejected'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM bookings b
+                      WHERE b.service_request_id = sr.id
+                        AND b.status IN ('completed', 'cancelled')
+                  )
                 ORDER BY sr.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
@@ -244,9 +249,61 @@ class ServiceProvider
                 ':booking_status' => $bookingStatus,
                 ':request_id' => $requestId
             ]);
+
+            if ($status === 'accepted') {
+                $provider = $this->db->prepare(
+                    "UPDATE service_providers
+                     SET work_pending = work_pending + 1
+                     WHERE id = :provider_id"
+                );
+                $provider->execute([':provider_id' => $providerId]);
+            }
         }
 
         return $stmt->rowCount() > 0;
+    }
+
+    public function completeServiceRequest(int $providerId, int $requestId): bool
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $booking = $this->db->prepare(
+                "UPDATE bookings b
+                 INNER JOIN service_requests sr ON sr.id = b.service_request_id
+                 SET b.status = 'completed'
+                 WHERE b.service_request_id = :request_id
+                   AND b.status = 'confirmed'
+                   AND sr.provider_id = :provider_id
+                   AND sr.status = 'accepted'"
+            );
+            $booking->execute([
+                ':request_id' => $requestId,
+                ':provider_id' => $providerId,
+            ]);
+
+            if ($booking->rowCount() === 0) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $provider = $this->db->prepare(
+                "UPDATE service_providers
+                 SET work_completed = work_completed + 1,
+                     work_pending = GREATEST(work_pending - 1, 0),
+                     work_successful = work_successful + 1
+                 WHERE id = :provider_id"
+            );
+            $provider->execute([':provider_id' => $providerId]);
+
+            $this->db->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
     }
 
     public function getServiceRequestById(int $requestId): ?array
