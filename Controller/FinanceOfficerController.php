@@ -11,10 +11,13 @@ class FinanceOfficerController {
             session_start();
         }
 
+        $this->financeModel = new FinanceOfficer();
         $this->paymentModel = new Payment();
     }
 
     public function dashboard() {
+        $dashboardTitle = $this->financeModel->getDashboardTitle();
+        $navigationItems = $this->financeModel->getNavigationItems();
         require_once __DIR__ . '/../View/FinanceOfficer/financeofficerdashboard.php';
     }
 

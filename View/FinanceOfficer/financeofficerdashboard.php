@@ -1,6 +1,7 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (!isset($dashboardTitle, $navigationItems)) {
+    header('Location: index.php?action=dashboard');
+    exit;
 }
 ?>
 
@@ -9,7 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FixLine - Finance Officer Dashboard</title>
+    <title>FixLine - <?php echo htmlspecialchars($dashboardTitle ?? 'Finance Officer Dashboard'); ?></title>
  
     <style>
         * {
@@ -269,7 +270,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <header>
         <div class="header-left">
             <img src="../images/protest.png" alt="FixLine Logo" style="width: 40px; height: 40px;">
-            <span>Finance Officer Dashboard</span>
+            <span><?php echo htmlspecialchars($dashboardTitle ?? 'Finance Officer Dashboard'); ?></span>
         </div>
 
         <form class="search-container" action="index.php" method="get">
@@ -288,35 +289,14 @@ if (session_status() === PHP_SESSION_NONE) {
     <main class="hero-section">
        
         <div class="services-menu">
-            
-            <a href="payments.php" class="service-card">
-                <div class="icon-circle">
-                    <img src="../images/services/payment-method (1).png" alt="Payments">
-                </div>
-                <div class="service-btn">Payments</div>
-            </a>
-
-            <a href="payout.php" class="service-card">
-                <div class="icon-circle">
-                    <img src="../images/services/atm.png" alt="Payout">
-                </div>
-                <div class="service-btn">Payout</div>
-            </a>
-
-            <a href="refunds.php" class="service-card">
-                <div class="icon-circle">
-                    <img src="../images/services/refund.png" alt="Refunds">
-                </div>
-                <div class="service-btn">Refunds</div>
-            </a>
-
-            <a href="account-management.php" class="service-card">
-                <div class="icon-circle">
-                    <img src="../images/services/accountant.png" alt="Account Management">
-                </div>
-                <div class="service-btn">Account Management</div>
-            </a>
-
+            <?php foreach (($navigationItems ?? []) as $item): ?>
+                <a href="<?php echo htmlspecialchars($item['url']); ?>" class="service-card">
+                    <div class="icon-circle">
+                        <img src="../images/services/<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['label']); ?>">
+                    </div>
+                    <div class="service-btn"><?php echo htmlspecialchars($item['label']); ?></div>
+                </a>
+            <?php endforeach; ?>
         </div>
 
  
