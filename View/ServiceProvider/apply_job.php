@@ -64,11 +64,15 @@ $activePage = 'apply_job';
                                 <label for="service_id_<?= (int) $job['id'] ?>">Service You Will Provide</label>
                                 <select id="service_id_<?= (int) $job['id'] ?>" name="service_id" class="fx-service-select" data-job-id="<?= (int) $job['id'] ?>" required>
                                     <option value="">Choose a service from your profile</option>
-                                    <?php foreach ($providerServices as $service): ?>
-                                        <option value="<?= (int) $service['id'] ?>" data-price="<?= htmlspecialchars((string) $service['price']) ?>">
-                                            <?= htmlspecialchars($service['service_name']) ?> — Tk <?= number_format((float) $service['price'], 2) ?>
-                                        </option>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($providerServices)): ?>
+                                        <?php foreach ($providerServices as $service): ?>
+                                            <option value="<?= (int) $service['id'] ?>" data-price="<?= htmlspecialchars((string) $service['price']) ?>">
+                                                <?= htmlspecialchars($service['service_name']) ?> — Tk <?= number_format((float) $service['price'], 2) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="" disabled>No services added to your profile yet</option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
