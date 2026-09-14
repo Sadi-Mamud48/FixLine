@@ -22,7 +22,7 @@ $activePage = 'dashboard';
             <div class="fx-profile-block">
                 <div class="fx-avatar-wrap">
                     <img class="fx-avatar"
-                         src="<?= htmlspecialchars($provider['profile_picture'] ?? 'View/images/default-avatar.png') ?>"
+                         src="<?= htmlspecialchars($provider['profile_picture'] ?? '/FixLine/View/images/plumber.png') ?>"
                          alt="Profile picture">
                 </div>
 
@@ -74,8 +74,8 @@ $activePage = 'dashboard';
                 <h3>Bio</h3>
                 <p><?= nl2br(htmlspecialchars($provider['bio'] ?? 'No bio added yet. Update your profile to introduce yourself to customers.')) ?></p>
 
-                <a href="service_provider.php?action=profile" class="fx-btn" style="margin-top:12px;display:inline-block;">Edit Profile</a>
-                <a href="service_provider.php?action=apply_job" class="fx-btn fx-btn-outline" style="margin-top:12px;display:inline-block;background:rgba(255,255,255,0.15);color:#fff;border-color:#fff;">Find Jobs</a>
+                <a href="/FixLine/index.php?action=provider_profile" class="fx-btn" style="margin-top:12px;display:inline-block;">Edit Profile</a>
+                <a href="/FixLine/index.php?action=provider_apply_job" class="fx-btn fx-btn-outline" style="margin-top:12px;display:inline-block;background:rgba(255,255,255,0.15);color:#fff;border-color:#fff;">Find Jobs</a>
             </div>
         </div>
 

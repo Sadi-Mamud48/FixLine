@@ -5,7 +5,7 @@ $moderatorModel = new Moderator();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status_update'], $_POST['complaint_id'])) {
     $moderatorModel->updateComplaintStatus($_POST['complaint_id'], $_POST['status_update']);
-    header('Location: /FixLine/moderator.php?action=complaints');
+    header("Location: /FixLine/index.php?action=moderator_complaints");
     exit();
 }
 
@@ -42,7 +42,7 @@ $complaints = $moderatorModel->getComplaints();
     <div class="dashboard-main">
       <header class="header">
         <h2>Customer Complaints & Tickets</h2>
-        <a href="/FixLine/moderator.php?action=dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
       <div class="content-area">
         <table class="data-table">

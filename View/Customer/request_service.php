@@ -43,7 +43,7 @@ $services = $services ?? [];
             <div class="notice"><?= htmlspecialchars($requestError) ?></div>
         <?php endif; ?>
 
-        <form action="/FixLine/cindex.php?action=request_service" method="post">
+        <form action="/FixLine/index.php?action=request_service" method="post">
             <label>
                 Service
                 <select name="service_id" required>

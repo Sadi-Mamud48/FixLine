@@ -59,8 +59,8 @@ try {
 <body>
     <div class="page-shell">
         <header>
-            <div class="brand"><img src="../images/protest.png" alt="FixLine Logo"><span>Finance Officer Dashboard</span></div>
-            <a class="back-link" href="financeofficerdashboard.php">Back to Dashboard</a>
+            <div class="brand"><img src="/FixLine/View/images/protest.png" alt="FixLine Logo"><span>Finance Officer Dashboard</span></div>
+            <div><a class="back-link" href="/FixLine/index.php?action=finance_dashboard">Back to Dashboard</a> <a class="back-link" href="/FixLine/index.php?action=logout">Logout</a></div>
         </header>
         <main>
             <div class="page-heading">

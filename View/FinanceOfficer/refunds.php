@@ -5,23 +5,22 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../../Model/Payment.php';
 
-$payments = [];
+$refundRequests = [];
 $refundHistory = [];
 $message = '';
 $messageType = '';
-$selectedInvoice = trim($_GET['invoice'] ?? $_POST['invoice_id'] ?? '');
+$selectedRequestId = (int) ($_GET['request'] ?? $_POST['refund_request_id'] ?? 0);
 
 try {
     $paymentModel = new Payment();
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['approve_refund']) || isset($_POST['reject_refund']))) {
-        if ($selectedInvoice === '') {
-            throw new InvalidArgumentException('Select a payment before submitting a refund.');
+        if ($selectedRequestId <= 0) {
+            throw new InvalidArgumentException('Select a refund request before submitting a decision.');
         }
 
-        $updated = isset($_POST['approve_refund'])
-            ? $paymentModel->markAsRefunded($selectedInvoice)
-            : $paymentModel->rejectRefund($selectedInvoice);
+        $decision = isset($_POST['approve_refund']) ? 'approved' : 'rejected';
+        $updated = $paymentModel->decideRefundRequest($selectedRequestId, $decision);
 
         if ($updated && isset($_POST['approve_refund'])) {
             $message = 'Full refund approved successfully.';
@@ -35,7 +34,7 @@ try {
         }
     }
 
-    $payments = $paymentModel->getRefundablePayments();
+    $refundRequests = $paymentModel->getRefundRequests();
     $refundHistory = $paymentModel->getRefundHistory();
 } catch (Throwable $exception) {
     $message = $exception instanceof InvalidArgumentException
@@ -44,17 +43,17 @@ try {
     $messageType = 'error';
 }
 
-$selectedPayment = null;
-foreach ($payments as $payment) {
-    if ($payment['invoice_id'] === $selectedInvoice) {
-        $selectedPayment = $payment;
+$selectedRequest = null;
+foreach ($refundRequests as $request) {
+    if ((int) $request['refund_request_id'] === $selectedRequestId) {
+        $selectedRequest = $request;
         break;
     }
 }
 
-if (!$selectedPayment && $payments) {
-    $selectedPayment = $payments[0];
-    $selectedInvoice = $selectedPayment['invoice_id'];
+if (!$selectedRequest && $refundRequests) {
+    $selectedRequest = $refundRequests[0];
+    $selectedRequestId = (int) $selectedRequest['refund_request_id'];
 }
 ?>
 <!DOCTYPE html>
@@ -109,43 +108,46 @@ if (!$selectedPayment && $payments) {
 <body>
     <div class="page-shell">
         <header>
-            <div class="brand"><img src="../images/protest.png" alt="FixLine Logo"><span>Finance Officer Dashboard</span></div>
-            <a class="back-link" href="financeofficerdashboard.php">Back to Dashboard</a>
+            <div class="brand"><img src="/FixLine/View/images/protest.png" alt="FixLine Logo"><span>Finance Officer Dashboard</span></div>
+            <div><a class="back-link" href="/FixLine/index.php?action=finance_dashboard">Back to Dashboard</a> <a class="back-link" href="/FixLine/index.php?action=logout">Logout</a></div>
         </header>
         <main>
             <h1>Refund</h1>
-            <p class="subtitle">You are about to initiate a refund</p>
+            <p class="subtitle">Review customer refund requests and approve or reject them.</p>
 
             <?php if ($message !== ''): ?><div class="notice <?php echo htmlspecialchars($messageType); ?>"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
 
-            <?php if ($selectedPayment): ?>
+            <?php if ($selectedRequest): ?>
                 <form method="post">
                     <div class="payment-picker">
-                        <label for="invoice-select">Customer payment</label>
-                        <select id="invoice-select" name="invoice_id" onchange="window.location.href='refunds.php?invoice=' + encodeURIComponent(this.value)">
-                            <?php foreach ($payments as $payment): ?>
-                                <option value="<?php echo htmlspecialchars($payment['invoice_id']); ?>" <?php echo $payment['invoice_id'] === $selectedInvoice ? 'selected' : ''; ?>><?php echo htmlspecialchars($payment['invoice_id'] . ' - ' . $payment['customer_name']); ?></option>
+                        <label for="request-select">Customer refund request</label>
+                        <select id="request-select" name="refund_request_id" onchange="window.location.href='/FixLine/index.php?action=finance_refunds&request=' + encodeURIComponent(this.value)">
+                            <?php foreach ($refundRequests as $request): ?>
+                                <option value="<?php echo (int) $request['refund_request_id']; ?>" <?php echo (int) $request['refund_request_id'] === $selectedRequestId ? 'selected' : ''; ?>>Request #<?php echo (int) $request['refund_request_id']; ?> - <?php echo htmlspecialchars($request['customer_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="transaction">
-                        <div class="transaction-row"><span>Customer ID</span><strong><?php echo htmlspecialchars($selectedPayment['customer_id']); ?></strong></div>
-                        <div class="transaction-row"><span>Customer Name</span><strong><?php echo htmlspecialchars($selectedPayment['customer_name']); ?></strong></div>
-                        <div class="transaction-row"><span>Customer Email</span><strong><?php echo htmlspecialchars($selectedPayment['customer_email'] ?: 'Not provided'); ?></strong></div>
-                        <div class="transaction-row"><span>Transaction Amount</span><strong>$<?php echo htmlspecialchars(number_format((float) $selectedPayment['amount'], 2)); ?></strong></div>
+                        <div class="transaction-row"><span>Customer ID</span><strong><?php echo htmlspecialchars($selectedRequest['customer_id']); ?></strong></div>
+                        <div class="transaction-row"><span>Customer Name</span><strong><?php echo htmlspecialchars($selectedRequest['customer_name']); ?></strong></div>
+                        <div class="transaction-row"><span>Customer Email</span><strong><?php echo htmlspecialchars($selectedRequest['customer_email'] ?: 'Not provided'); ?></strong></div>
+                        <div class="transaction-row"><span>Service</span><strong><?php echo htmlspecialchars($selectedRequest['service_name'] ?: 'Service booking'); ?></strong></div>
+                        <div class="transaction-row"><span>Transaction Amount</span><strong>Tk <?php echo htmlspecialchars(number_format((float) $selectedRequest['amount'], 2)); ?></strong></div>
+                        <div class="transaction-row"><span>Customer reason</span><strong><?php echo htmlspecialchars($selectedRequest['reason']); ?></strong></div>
                     </div>
 
                     <div class="amount-box">
                         <label for="amount">Refund amount</label>
-                        <input id="amount" type="text" value="$<?php echo htmlspecialchars(number_format((float) $selectedPayment['amount'], 2)); ?>" readonly>
+                        <input id="amount" type="text" value="Tk <?php echo htmlspecialchars(number_format((float) $selectedRequest['amount'], 2)); ?>" readonly>
                         <p class="full-refund-note">Only a full refund of the original payment amount can be approved.</p>
                     </div>
                     <p class="decision-note">Reject the request if the refund should not be approved. Rejected requests cannot be refunded from this page.</p>
-                    <div class="actions"><a class="cancel" href="financeofficerdashboard.php">Cancel</a><button class="reject" type="submit" name="reject_refund">Reject Refund</button><button class="refund" type="submit" name="approve_refund">Approve Full Refund</button></div>
+                    <input type="hidden" name="refund_request_id" value="<?php echo (int) $selectedRequestId; ?>">
+                    <div class="actions"><a class="cancel" href="/FixLine/index.php?action=finance_dashboard">Cancel</a><button class="reject" type="submit" name="reject_refund">Reject Refund</button><button class="refund" type="submit" name="approve_refund">Approve Full Refund</button></div>
                 </form>
             <?php else: ?>
-                <div class="empty-state">No approved customer payments are currently available for refund.</div>
+                <div class="empty-state">There are no customer refund requests waiting for a decision.</div>
             <?php endif; ?>
 
             <section class="history">
@@ -153,15 +155,15 @@ if (!$selectedPayment && $payments) {
                 <?php if ($refundHistory): ?>
                     <div class="history-wrap">
                         <table>
-                            <thead><tr><th>Customer ID</th><th>Customer</th><th>Email</th><th>Invoice</th><th>Amount</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Customer ID</th><th>Customer</th><th>Email</th><th>Payment</th><th>Amount</th><th>Status</th></tr></thead>
                             <tbody>
                                 <?php foreach ($refundHistory as $refund): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($refund['customer_id']); ?></td>
                                         <td><?php echo htmlspecialchars($refund['customer_name']); ?></td>
                                         <td><?php echo htmlspecialchars($refund['customer_email'] ?: 'Not provided'); ?></td>
-                                        <td><?php echo htmlspecialchars($refund['invoice_id']); ?></td>
-                                        <td>$<?php echo htmlspecialchars(number_format((float) $refund['amount'], 2)); ?></td>
+                                        <td>#<?php echo (int) $refund['payment_id']; ?></td>
+                                        <td>Tk <?php echo htmlspecialchars(number_format((float) $refund['amount'], 2)); ?></td>
                                         <td><span class="history-status <?php echo strtolower($refund['status']); ?>"><?php echo htmlspecialchars($refund['status']); ?></span></td>
                                     </tr>
                                 <?php endforeach; ?>

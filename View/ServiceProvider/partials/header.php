@@ -3,7 +3,7 @@
 $activePage = $activePage ?? '';
 ?>
 <div class="fx-navbar">
-    <a href="service_provider.php?action=dashboard" class="fx-brand">
+    <a href="/FixLine/index.php?action=provider_dashboard" class="fx-brand">
         <img src="View/images/logo.png" alt="FixLine logo" onerror="this.style.display='none'">
         <span>Home</span>
     </a>
@@ -19,16 +19,16 @@ $activePage = $activePage ?? '';
                 <img src="View/images/csettings.png" alt="Settings" title="Settings">
             </summary>
             <div class="fx-settings-dropdown">
-                <a href="/FixLine/cindex.php?action=logout">Log out</a>
+                <a href="/FixLine/index.php?action=logout">Log out</a>
             </div>
         </details>
     </div>
 </div>
 
 <div class="fx-tab-row">
-    <a href="service_provider.php?action=dashboard" class="<?= $activePage === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
-    <a href="service_provider.php?action=profile" class="<?= $activePage === 'profile' ? 'active' : '' ?>">Profile</a>
-    <a href="service_provider.php?action=requests" class="<?= $activePage === 'requests' ? 'active' : '' ?>">Requests</a>
-    <a href="service_provider.php?action=apply_job" class="<?= $activePage === 'apply_job' ? 'active' : '' ?>">Apply for Job</a>
-    <a href="service_provider.php?action=earnings" class="<?= $activePage === 'earnings' ? 'active' : '' ?>">Earnings</a>
+    <a href="/FixLine/index.php?action=provider_dashboard" class="<?= $activePage === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+    <a href="/FixLine/index.php?action=provider_profile" class="<?= $activePage === 'profile' ? 'active' : '' ?>">Profile</a>
+    <a href="/FixLine/index.php?action=provider_requests" class="<?= $activePage === 'requests' ? 'active' : '' ?>">Requests</a>
+    <a href="/FixLine/index.php?action=provider_apply_job" class="<?= $activePage === 'apply_job' ? 'active' : '' ?>">Apply for Job</a>
+    <a href="/FixLine/index.php?action=provider_earnings" class="<?= $activePage === 'earnings' ? 'active' : '' ?>">Earnings</a>
 </div>

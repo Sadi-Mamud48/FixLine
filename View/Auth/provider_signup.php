@@ -43,11 +43,11 @@ unset($_SESSION['auth_error']);
         <section class="panel">
             <img class="brand" src="/FixLine/View/images/protest.png" alt="FixLine">
             <nav class="top-nav"><a href="#">Home</a><a href="#">About us</a><a href="#">Contact us</a><a href="#">Help</a></nav>
-            <a class="back" href="login.php" aria-label="Back"><img src="../images/left-arrow.png" alt="Back"></a>
+            <a class="back" href="/FixLine/index.php?action=login" aria-label="Back"><img src="../images/left-arrow.png" alt="Back"></a>
             <h1>Welcome to<br>FixLine</h1>
             <?php if ($error !== null): ?><div class="notice"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-            <div class="tabs"><a href="customer_signup.php">Customer</a><a class="active" href="provider_signup.php">Provider</a></div>
-            <form method="post" action="/FixLine/cindex.php?action=provider_signup">
+            <div class="tabs"><a href="/FixLine/index.php?action=customer_signup">Customer</a><a class="active" href="/FixLine/index.php?action=provider_signup">Provider</a></div>
+            <form method="post" action="/FixLine/index.php?action=provider_signup">
                 <label for="name">Full Name</label><input id="name" type="text" name="name" required autocomplete="name">
                 <label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="email">
                 <label for="phone">Phone Number</label><input id="phone" type="tel" name="phone" pattern="[0-9]{11}" maxlength="11" inputmode="numeric" required autocomplete="tel">

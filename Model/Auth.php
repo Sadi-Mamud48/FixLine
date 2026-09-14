@@ -18,6 +18,17 @@ class Auth
         return $user ?: null;
     }
 
+    public function getProviderApprovalStatus(int $userId): ?string
+    {
+        $stmt = $this->db->prepare(
+            'SELECT status FROM service_providers WHERE user_id = :user_id LIMIT 1'
+        );
+        $stmt->execute([':user_id' => $userId]);
+        $status = $stmt->fetchColumn();
+
+        return $status === false ? null : (string) $status;
+    }
+
     public function createCustomer(string $name, string $email, string $password, ?string $phone): int
     {
         $stmt = $this->db->prepare(

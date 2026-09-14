@@ -240,7 +240,7 @@ if (session_status() === PHP_SESSION_NONE) {
             bottom: 0;
             width: 76%;
             height: 100%;
-            background: url('../images/Backgroundpic2 2.jpg') no-repeat center right;
+                background: url('/FixLine/View/images/Backgroundpic2 2.jpg') no-repeat center right;
             background-size: contain;
             mix-blend-mode: multiply;
             pointer-events: none;
@@ -336,25 +336,25 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <header>
         <div class="header-left">
-            <img src="../images/protest.png" alt="FixLine Logo" style="width: 40px; height: 40px;">
+            <img src="/FixLine/View/images/logo.png" alt="FixLine Logo" style="width: 40px; height: 40px;">
             <span>Customers Dashboard</span>
         </div>
 
-        <form class="search-container" action="/FixLine/cindex.php" method="get">
+        <form class="search-container" action="/FixLine/index.php" method="get">
             <input type="hidden" name="action" value="search">
             <input type="search" name="search" placeholder="Search services or providers" aria-label="Search services or providers">
         </form>
 
         <div class="header-right">
-            <a class="bookings-link" href="my_bookings.php">My Bookings</a>
-            <a class="refund-link" href="/FixLine/View/Customer/refunds.php">Refunds</a>
+            <a class="bookings-link" href="/FixLine/index.php?action=my_bookings">My Bookings</a>
+            <a class="refund-link" href="/FixLine/index.php?action=refunds">Refunds</a>
             <details class="settings-menu">
                 <summary>
-                    <img src="../images/csettings.png" alt="Settings" title="Settings">
+                    <img src="/FixLine/View/images/csettings.png" alt="Settings" title="Settings">
                 </summary>
                 <div class="settings-dropdown">
                     <a href="/FixLine/View/Customer/account_settings.php?tab=profile">Account Settings</a>
-                    <a href="/FixLine/cindex.php?action=logout">Log out</a>
+                    <a href="/FixLine/index.php?action=logout">Log out</a>
                 </div>
             </details>
         </div>
@@ -365,30 +365,30 @@ if (session_status() === PHP_SESSION_NONE) {
        
         <div class="services-menu">
             
-            <a href="/FixLine/cindex.php?action=search&category=plumber" class="service-card">
+            <a href="/FixLine/index.php?action=search&category=plumber" class="service-card">
                 <div class="icon-circle">
-                    <img src="../images/services/technician.png" alt="Plumber"> <!-- Ai bhabei bakiki image load korte hobe-->
+                    <img src="/FixLine/View/images/services/technician.png" alt="Plumber">
                 </div>
                 <div class="service-btn">Plumber</div>
             </a>
 
-            <a href="/FixLine/cindex.php?action=search&category=electrician" class="service-card">
+            <a href="/FixLine/index.php?action=search&category=electrician" class="service-card">
                 <div class="icon-circle">
-                    <img src="../images/services/Electrician.png" alt="Electrician">
+                    <img src="/FixLine/View/images/services/Electrician.png" alt="Electrician">
                 </div>
                 <div class="service-btn">Electrician</div>
             </a>
 
-            <a href="/FixLine/cindex.php?action=search&category=painter" class="service-card">
+            <a href="/FixLine/index.php?action=search&category=painter" class="service-card">
                 <div class="icon-circle">
-                    <img src="../images/services/painter.png" alt="Painter">
+                    <img src="/FixLine/View/images/services/painter.png" alt="Painter">
                 </div>
                 <div class="service-btn">Painter & Decorator</div>
             </a>
 
-            <a href="/FixLine/cindex.php?action=search&category=repairer" class="service-card">
+            <a href="/FixLine/index.php?action=search&category=repairer" class="service-card">
                 <div class="icon-circle">
-                    <img src="../images/services/Appliance.png" alt="Appliance Repairer">
+                    <img src="/FixLine/View/images/services/Appliance.png" alt="Appliance Repairer">
                 </div>
                 <div class="service-btn">Appliance Repairer</div>
             </a>
@@ -402,7 +402,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <footer>
         <div class="footer-brand">
-            <img src="../images/protest.png" alt="FixLine Logo" style="width: 60px; height: 60px;">
+            <img src="/FixLine/View/images/protest.png" alt="FixLine Logo" style="width: 60px; height: 60px;">
             <h2>FixLine</h2>
         </div>
 
@@ -424,10 +424,10 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="footer-col">
             <h4>Social Media</h4>
             <div class="social-icons">
-                <a href="#"><img src="../images/communication.png" alt="Facebook"></a>
-                <a href="#"><img src="../images/instagram.png" alt="Instagram"></a>
-                <a href="#"><img src="../images/logos.png" alt="X"></a>
-                <a href="#"><img src="../images/youtube.png" alt="YouTube"></a>
+                <a href="#"><img src="/FixLine/View/images/communication.png" alt="Facebook"></a>
+                <a href="#"><img src="/FixLine/View/images/instagram.png" alt="Instagram"></a>
+                <a href="#"><img src="/FixLine/View/images/logos.png" alt="X"></a>
+                <a href="#"><img src="/FixLine/View/images/youtube.png" alt="YouTube"></a>
             </div>
         </div>
     </footer>

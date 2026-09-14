@@ -1,7 +1,7 @@
 /**
  * FixLine - Profile picture uploader
  * -----------------------------------
- * Sends the chosen image to service_provider.php?action=upload_picture
+ * Sends the chosen image to index.php?action=upload_picture
  * via fetch + FormData, and swaps the preview <img> once the server
  * responds with JSON. This is the only AJAX/JSON flow in the module —
  * everything else is plain form POST + PHP page reload.
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         statusText.textContent = 'Uploading...';
         statusText.style.color = '';
 
-        fetch('service_provider.php?action=upload_picture', {
+        fetch('/FixLine/index.php?action=upload_picture', {
             method: 'POST',
             body: formData
         })

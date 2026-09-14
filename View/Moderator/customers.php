@@ -43,14 +43,15 @@ $customers = $moderatorModel->getCustomers();
   <div class="dashboard-card">
     <div class="dashboard-main">
       <header class="header">
-        <a href="/FixLine/moderator.php?action=dashboard" class="brand-title">
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="brand-title">
           <i class="fa-solid fa-screwdriver-wrench"></i>
+          <span>Moderators Dashboard</span>
         </a>
-        <a href="/FixLine/moderator.php?action=dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
 
       <div class="content-area">
-        <h2>Registered Customers</h2>
+        <h2>Registered Customers (Database View)</h2>
         <table class="data-table">
           <thead>
             <tr>
@@ -64,7 +65,7 @@ $customers = $moderatorModel->getCustomers();
             <?php if (!empty($customers)): ?>
               <?php foreach ($customers as $customer): ?>
                 <tr>
-                  <td><span class="badge-id"><?= htmlspecialchars($customer['id']); ?></span></td>
+                  <td><span class="badge-id">#<?= htmlspecialchars($customer['id']); ?></span></td>
                   <td><?= htmlspecialchars($customer['name']); ?></td>
                   <td><?= htmlspecialchars($customer['gmail']); ?></td>
                   <td><?= htmlspecialchars($customer['created_at']); ?></td>

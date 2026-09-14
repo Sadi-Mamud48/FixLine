@@ -1,0 +1,226 @@
+-- FixLine single-database setup
+-- Paste this entire file into MariaDB/phpMyAdmin.
+-- Initial account passwords are all: 123
+
+DROP DATABASE IF EXISTS fixline_db;
+CREATE DATABASE fixline_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE fixline_db;
+
+CREATE TABLE users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(50) NULL,
+    last_name VARCHAR(50) NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('customer','provider','moderator','finance','admin') NOT NULL DEFAULT 'customer',
+    status ENUM('Active','Blocked') NOT NULL DEFAULT 'Active',
+    address VARCHAR(255) NULL,
+    phone VARCHAR(30) NULL,
+    profile_photo VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE service_providers (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    profession VARCHAR(100) NOT NULL,
+    affiliate VARCHAR(100) DEFAULT NULL,
+    experience VARCHAR(50) DEFAULT NULL,
+    bio TEXT DEFAULT NULL,
+    profile_picture VARCHAR(255) DEFAULT 'View/images/plumber.png',
+    rating DECIMAL(2,1) DEFAULT 0.0,
+    work_completed INT DEFAULT 0,
+    work_pending INT DEFAULT 0,
+    work_successful INT DEFAULT 0,
+    status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_provider_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE jobs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED DEFAULT NULL,
+    title VARCHAR(150) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    description TEXT,
+    location VARCHAR(150),
+    budget DECIMAL(10,2) DEFAULT NULL,
+    status ENUM('open','assigned','completed','cancelled') NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_job_customer FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE services (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    provider_id INT UNSIGNED DEFAULT NULL,
+    job_application_id INT UNSIGNED DEFAULT NULL,
+    service_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_service_provider FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE job_applications (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    job_id INT UNSIGNED NOT NULL,
+    provider_id INT UNSIGNED DEFAULT NULL,
+    cover_note TEXT,
+    proposed_price DECIMAL(10,2) DEFAULT NULL,
+    status ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_application (job_id, provider_id),
+    CONSTRAINT fk_application_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    CONSTRAINT fk_application_provider FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE services ADD CONSTRAINT fk_service_application FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE SET NULL;
+
+CREATE TABLE service_requests (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
+    provider_id INT UNSIGNED NOT NULL,
+    service_id INT UNSIGNED DEFAULT NULL,
+    job_application_id INT UNSIGNED DEFAULT NULL,
+    title VARCHAR(150) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    location VARCHAR(150),
+    budget DECIMAL(10,2) DEFAULT NULL,
+    status ENUM('new','accepted','applied','rejected','completed') NOT NULL DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_request_customer FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_provider FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
+    CONSTRAINT fk_request_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL,
+    CONSTRAINT fk_request_application FOREIGN KEY (job_application_id) REFERENCES job_applications(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE bookings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    service_request_id INT UNSIGNED DEFAULT NULL,
+    service_id INT UNSIGNED DEFAULT NULL,
+    booking_date DATE NOT NULL,
+    status ENUM('pending','confirmed','completed','cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_booking_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_booking_request FOREIGN KEY (service_request_id) REFERENCES service_requests(id) ON DELETE SET NULL,
+    CONSTRAINT fk_booking_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE reviews (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    service_id INT UNSIGNED DEFAULT NULL,
+    rating TINYINT UNSIGNED NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_review_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_review_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE earnings (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    provider_id INT UNSIGNED NOT NULL,
+    job_id INT UNSIGNED DEFAULT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending','paid') NOT NULL DEFAULT 'pending',
+    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_earning_provider FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
+    CONSTRAINT fk_earning_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE payments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT UNSIGNED DEFAULT NULL,
+    user_id INT UNSIGNED DEFAULT NULL,
+    customer_id INT UNSIGNED DEFAULT NULL,
+    invoice_id VARCHAR(100) NULL,
+    customer_name VARCHAR(100) NULL,
+    customer_email VARCHAR(150) NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method VARCHAR(50) NULL,
+    payment_method VARCHAR(50) NULL,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending','paid','failed','Approved','Refunded','Rejected') NOT NULL DEFAULT 'pending',
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_payment_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+    CONSTRAINT fk_payment_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE refund_requests (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    payment_id INT UNSIGNED NOT NULL UNIQUE,
+    user_id INT UNSIGNED NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('requested','approved','rejected','refunded') DEFAULT 'requested',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_refund_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
+    CONSTRAINT fk_refund_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE payouts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    provider_name VARCHAR(100) NOT NULL,
+    job_id INT UNSIGNED NULL,
+    invoice_id VARCHAR(100) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payout_method VARCHAR(50) NULL,
+    payout_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Pending','Paid','Failed') DEFAULT 'Pending'
+) ENGINE=InnoDB;
+
+CREATE TABLE complaints (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT UNSIGNED NOT NULL,
+    provider_id INT UNSIGNED NOT NULL,
+    issue_description TEXT NOT NULL,
+    status ENUM('open','in_review','resolved','escalated_to_admin') DEFAULT 'open',
+    resolution_notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_complaint_customer FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_complaint_provider FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+INSERT INTO users (name, email, password, role, status) VALUES
+('Abir Admin', 'abir@gmail.com', '$2y$12$h6uKCOLFgiYDSuW/4G.PEOzlDODfihpoULBRJtVFguxucOSxoqcTC', 'admin', 'Active'),
+('Maruf Moderator', 'maruf@gmail.com', '$2y$12$IoQae4ZKoiZxXJwAPZ26HOQLZSc144pgr5TNJNNBryQ/18agBhc0G', 'moderator', 'Active'),
+('Zifan Finance', 'zifan@gmail.com', '$2y$12$istHMjECMFwu7wtcU4T/COzCM0pf5W0xGWnga3g9SmeMP1/2DDmYu', 'finance', 'Active'),
+('Demo Customer', 'customer@example.com', '$2y$12$lSBER7egLXOcNZIqeh9NmOLbvh4iGrXDzha32aVXX3BMcM0hm83ny', 'customer', 'Active'),
+('Demo Plumber', 'plumber@example.com', '$2y$12$lSBER7egLXOcNZIqeh9NmOLbvh4iGrXDzha32aVXX3BMcM0hm83ny', 'provider', 'Active'),
+('Demo Electrician', 'electrician@example.com', '$2y$12$lSBER7egLXOcNZIqeh9NmOLbvh4iGrXDzha32aVXX3BMcM0hm83ny', 'provider', 'Active'),
+('Demo Painter', 'painter@example.com', '$2y$12$lSBER7egLXOcNZIqeh9NmOLbvh4iGrXDzha32aVXX3BMcM0hm83ny', 'provider', 'Active'),
+('Demo Appliance Repairer', 'repairer@example.com', '$2y$12$lSBER7egLXOcNZIqeh9NmOLbvh4iGrXDzha32aVXX3BMcM0hm83ny', 'provider', 'Active');
+
+INSERT INTO service_providers (user_id, profession, affiliate, experience, bio, status)
+SELECT id, 'Plumber', 'FixLine Demo Services', '5 years', 'Professional plumbing services.', 'approved' FROM users WHERE email = 'plumber@example.com'
+ON DUPLICATE KEY UPDATE profession = VALUES(profession), status = 'approved';
+INSERT INTO service_providers (user_id, profession, affiliate, experience, bio, status)
+SELECT id, 'Electrician', 'FixLine Demo Services', '4 years', 'Reliable electrical repair services.', 'approved' FROM users WHERE email = 'electrician@example.com'
+ON DUPLICATE KEY UPDATE profession = VALUES(profession), status = 'approved';
+INSERT INTO service_providers (user_id, profession, affiliate, experience, bio, status)
+SELECT id, 'Painter', 'FixLine Demo Services', '6 years', 'Interior and exterior painting services.', 'approved' FROM users WHERE email = 'painter@example.com'
+ON DUPLICATE KEY UPDATE profession = VALUES(profession), status = 'approved';
+INSERT INTO service_providers (user_id, profession, affiliate, experience, bio, status)
+SELECT id, 'repairer', 'FixLine Demo Services', '3 years', 'Home appliance repair services.', 'approved' FROM users WHERE email = 'repairer@example.com'
+ON DUPLICATE KEY UPDATE profession = VALUES(profession), status = 'approved';
+
+INSERT INTO services (provider_id, service_name, category, description, price)
+SELECT sp.id, 'Plumbing Repair', 'plumber', 'Pipes, leaks, taps and bathroom repairs.', 1500.00 FROM service_providers sp JOIN users u ON u.id = sp.user_id WHERE u.email = 'plumber@example.com'
+AND NOT EXISTS (SELECT 1 FROM services s WHERE s.provider_id = sp.id AND s.category = 'plumber');
+INSERT INTO services (provider_id, service_name, category, description, price)
+SELECT sp.id, 'Electrical Repair', 'electrician', 'Wiring, switches, fans and electrical repairs.', 1800.00 FROM service_providers sp JOIN users u ON u.id = sp.user_id WHERE u.email = 'electrician@example.com'
+AND NOT EXISTS (SELECT 1 FROM services s WHERE s.provider_id = sp.id AND s.category = 'electrician');
+INSERT INTO services (provider_id, service_name, category, description, price)
+SELECT sp.id, 'Painting Service', 'painter', 'Interior and exterior home painting.', 3500.00 FROM service_providers sp JOIN users u ON u.id = sp.user_id WHERE u.email = 'painter@example.com'
+AND NOT EXISTS (SELECT 1 FROM services s WHERE s.provider_id = sp.id AND s.category = 'painter');
+INSERT INTO services (provider_id, service_name, category, description, price)
+SELECT sp.id, 'Appliance Repair', 'repairer', 'Repair for common household appliances.', 1200.00 FROM service_providers sp JOIN users u ON u.id = sp.user_id WHERE u.email = 'repairer@example.com'
+AND NOT EXISTS (SELECT 1 FROM services s WHERE s.provider_id = sp.id AND s.category = 'repairer');
+
+-- Verify the seeded accounts.
+SELECT id, name, email, role, status FROM users ORDER BY id;

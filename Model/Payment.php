@@ -1,12 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../Config/Database.php';
 
 class Payment
 {
     private $pdo;
 
-    public function __construct(PDO $pdo = null)
+    public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo ?: createDatabaseConnection();
     }
@@ -81,14 +81,72 @@ class Payment
     public function getRefundRequests()
     {
         $statement = $this->pdo->prepare(
-            "SELECT invoice_id, payment_date, customer_name, payment_method, amount, status
-             FROM payments
-             WHERE status = 'Refunded'
-             ORDER BY payment_date DESC"
+            "SELECT r.id AS refund_request_id, r.reason, r.status AS refund_status, r.created_at AS requested_at,
+                    p.id AS payment_id, p.amount, p.paid_at,
+                    u.id AS customer_id, u.name AS customer_name, u.email AS customer_email,
+                    s.service_name
+             FROM refund_requests r
+             JOIN payments p ON p.id = r.payment_id
+             JOIN users u ON u.id = r.user_id
+             LEFT JOIN bookings b ON b.id = p.booking_id
+             LEFT JOIN services s ON s.id = b.service_id
+             WHERE r.status = 'requested'
+             ORDER BY r.created_at ASC"
         );
         $statement->execute();
 
         return $statement->fetchAll();
+    }
+
+    public function decideRefundRequest(int $refundRequestId, string $decision): bool
+    {
+        if (!in_array($decision, ['approved', 'rejected'], true)) {
+            return false;
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $request = $this->pdo->prepare(
+                "SELECT payment_id FROM refund_requests
+                 WHERE id = :request_id AND status = 'requested'
+                 FOR UPDATE"
+            );
+            $request->execute(['request_id' => $refundRequestId]);
+            $paymentId = $request->fetchColumn();
+
+            if ($paymentId === false) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $updateRequest = $this->pdo->prepare(
+                "UPDATE refund_requests SET status = :decision WHERE id = :request_id"
+            );
+            $updateRequest->execute([
+                'decision' => $decision,
+                'request_id' => $refundRequestId,
+            ]);
+
+            if ($decision === 'approved') {
+                $updatePayment = $this->pdo->prepare(
+                    "UPDATE payments SET status = 'Refunded' WHERE id = :payment_id AND status = 'paid'"
+                );
+                $updatePayment->execute(['payment_id' => $paymentId]);
+                if ($updatePayment->rowCount() !== 1) {
+                    $this->pdo->rollBack();
+                    return false;
+                }
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
     }
 
     public function getRefundablePayments()
@@ -129,10 +187,14 @@ class Payment
     public function getRefundHistory()
     {
         $statement = $this->pdo->prepare(
-            "SELECT invoice_id, customer_id, customer_name, customer_email, amount, payment_date, status
-             FROM payments
-             WHERE status IN ('Refunded', 'Rejected')
-             ORDER BY payment_date DESC"
+            "SELECT r.id AS refund_request_id, r.status, r.reason, r.created_at AS decided_at,
+                    p.id AS payment_id, p.amount,
+                    u.id AS customer_id, u.name AS customer_name, u.email AS customer_email
+             FROM refund_requests r
+             JOIN payments p ON p.id = r.payment_id
+             JOIN users u ON u.id = r.user_id
+             WHERE r.status IN ('approved', 'rejected')
+             ORDER BY r.created_at DESC"
         );
         $statement->execute();
 

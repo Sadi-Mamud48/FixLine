@@ -1,6 +1,6 @@
 <?php
 if (!isset($dashboardTitle, $navigationItems)) {
-    header('Location: index.php?action=dashboard');
+    header('Location: /FixLine/index.php?action=finance_dashboard');
     exit;
 }
 ?>
@@ -100,6 +100,18 @@ if (!isset($dashboardTitle, $navigationItems)) {
             opacity: 0.8;
         }
 
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,.7);
+            border-radius: 6px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
 
         .hero-section {
             display: flex;
@@ -173,7 +185,7 @@ if (!isset($dashboardTitle, $navigationItems)) {
             bottom: 0;
             width: 78%;
             height: 100%;
-            background: url('../images/dashboad.jpeg') no-repeat center right;
+            background: url('/FixLine/View/images/dashboad.jpeg') no-repeat center right;
             background-size: contain;
             mix-blend-mode: multiply;
             pointer-events: none;
@@ -269,19 +281,19 @@ if (!isset($dashboardTitle, $navigationItems)) {
 
     <header>
         <div class="header-left">
-            <img src="../images/protest.png" alt="FixLine Logo" style="width: 40px; height: 40px;">
+            <img src="/FixLine/View/images/protest.png" alt="FixLine Logo" style="width: 40px; height: 40px;">
             <span><?php echo htmlspecialchars($dashboardTitle ?? 'Finance Officer Dashboard'); ?></span>
         </div>
 
-        <form class="search-container" action="index.php" method="get">
+        <form class="search-container" action="/FixLine/index.php" method="get">
             <input type="hidden" name="action" value="search">
             <input type="search" name="search" placeholder="Search" aria-label="Search">
         </form>
 
         <div class="header-right">
-            <img src="../images/fnotification.png" alt="Notifications" title="Notifications">
-            <img src="../images/chat.png" alt="Messages" title="Messages">
-            <img src="../images/fsettings.png" alt="Settings" title="Settings">
+            <img src="/FixLine/View/images/fnotification.png" alt="Notifications" title="Notifications">
+            <img src="/FixLine/View/images/fsettings.png" alt="Settings" title="Settings">
+            <a href="/FixLine/index.php?action=logout" class="logout-btn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </div>
     </header>
 
@@ -292,7 +304,7 @@ if (!isset($dashboardTitle, $navigationItems)) {
             <?php foreach (($navigationItems ?? []) as $item): ?>
                 <a href="<?php echo htmlspecialchars($item['url']); ?>" class="service-card">
                     <div class="icon-circle">
-                        <img src="../images/services/<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['label']); ?>">
+                        <img src="/FixLine/View/images/services/<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['label']); ?>">
                     </div>
                     <div class="service-btn"><?php echo htmlspecialchars($item['label']); ?></div>
                 </a>
@@ -306,7 +318,7 @@ if (!isset($dashboardTitle, $navigationItems)) {
 
     <footer>
         <div class="footer-brand">
-            <img src="../images/protest.png" alt="FixLine Logo" style="width: 60px; height: 60px;">
+            <img src="/FixLine/View/images/protest.png" alt="FixLine Logo" style="width: 60px; height: 60px;">
             <h2>FixLine</h2>
         </div>
 
@@ -328,10 +340,10 @@ if (!isset($dashboardTitle, $navigationItems)) {
         <div class="footer-col">
             <h4>Social Media</h4>
             <div class="social-icons">
-                <a href="#"><img src="../images/communication.png" alt="Facebook"></a>
-                <a href="#"><img src="../images/instagram.png" alt="Instagram"></a>
-                <a href="#"><img src="../images/logos.png" alt="X"></a>
-                <a href="#"><img src="../images/youtube.png" alt="YouTube"></a>
+                <a href="#"><img src="/FixLine/View/images/communication.png" alt="Facebook"></a>
+                <a href="#"><img src="/FixLine/View/images/instagram.png" alt="Instagram"></a>
+                <a href="#"><img src="/FixLine/View/images/logos.png" alt="X"></a>
+                <a href="#"><img src="/FixLine/View/images/youtube.png" alt="YouTube"></a>
             </div>
         </div>
     </footer>

@@ -13,15 +13,6 @@ $type = trim($_GET['type'] ?? '');
 
 try {
     $accountModel = new Account();
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-        $accountId = trim($_POST['account_id'] ?? '');
-        $status = trim($_POST['status'] ?? '');
-        $updated = $accountModel->updateStatus($accountId, $status);
-        $message = $updated ? 'Account status updated successfully.' : 'The account status could not be updated.';
-        $messageType = $updated ? 'success' : 'error';
-    }
-
     $accounts = $accountModel->getAll($search, $type);
 } catch (Throwable $exception) {
     $message = 'Account records are temporarily unavailable. Please check the database connection.';
@@ -29,8 +20,7 @@ try {
 }
 
 $activeCount = count(array_filter($accounts, static function ($account) { return $account['status'] === 'Active'; }));
-$pendingCount = count(array_filter($accounts, static function ($account) { return $account['status'] === 'Pending'; }));
-$suspendedCount = count(array_filter($accounts, static function ($account) { return $account['status'] === 'Suspended'; }));
+$blockedCount = count(array_filter($accounts, static function ($account) { return $account['status'] === 'Blocked'; }));
 $totalPayments = array_sum(array_map(static function ($account) { return (float) ($account['last_payment'] ?? 0); }, $accounts));
 $totalPayouts = array_sum(array_map(static function ($account) { return (float) ($account['last_payout'] ?? 0); }, $accounts));
 ?>
@@ -84,13 +74,9 @@ $totalPayouts = array_sum(array_map(static function ($account) { return (float) 
         th { color: var(--muted); background: #fbfbfd; font-size: 11px; font-weight: 600; }
         td { color: #515064; }
         .status { display: inline-block; padding: 5px 8px; border-radius: 12px; color: var(--green); background: #e6f8f0; font-size: 11px; }
-        .status.pending { color: #a87814; background: #fff4d6; }
-        .status.suspended { color: #bb4b43; background: #ffebe9; }
+        .status.blocked { color: #bb4b43; background: #ffebe9; }
         .row-actions { color: var(--blue); white-space: nowrap; }
         .row-actions button { margin-right: 7px; border: 0; color: inherit; background: none; cursor: pointer; }
-        .status-form { display: flex; gap: 6px; align-items: center; }
-        .status-form select { padding: 6px 7px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: #fff; font-size: 11px; }
-        .status-form button { padding: 6px 8px; border: 0; border-radius: 5px; color: #fff; background: var(--blue); font-size: 11px; cursor: pointer; }
         .account-overview { margin-top: 22px; }
         .account-overview > h2 { margin-bottom: 14px; }
         .account-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -102,7 +88,6 @@ $totalPayouts = array_sum(array_map(static function ($account) { return (float) 
         .account-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 15px; border-top: 1px solid var(--line); }
         .account-detail span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; }
         .account-detail strong { font-size: 13px; font-weight: 600; }
-        .account-card .status-form { justify-content: flex-end; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
         @media (max-width: 900px) { .overview { grid-template-columns: repeat(2, 1fr); } .profile-card { grid-column: span 2; } }
         @media (max-width: 600px) { header, main { padding: 18px; } header { flex-wrap: wrap; } .heading { align-items: flex-start; flex-direction: column; } .overview { grid-template-columns: 1fr; } .profile-card { grid-column: auto; } .table-heading { align-items: flex-start; flex-direction: column; gap: 12px; } .table-heading input { width: 100%; } .account-details { grid-template-columns: 1fr; } }
     </style>
@@ -111,8 +96,8 @@ $totalPayouts = array_sum(array_map(static function ($account) { return (float) 
     <div class="app">
         <div class="content">
             <header>
-                <div class="profile"><img src="../images/protest.png" alt="Finance Officer"><span>Finance Officer</span></div>
-                <div class="top-actions"><a class="dashboard-link" href="financeofficerdashboard.php">Back to Dashboard</a><span title="Notifications">♧</span><span title="Messages">▢</span></div>
+                <div class="profile"><img src="/FixLine/View/images/protest.png" alt="Finance Officer"><span>Finance Officer</span></div>
+                <div class="top-actions"><a class="dashboard-link" href="/FixLine/index.php?action=finance_dashboard">Back to Dashboard</a><a class="dashboard-link" href="/FixLine/index.php?action=logout">Logout</a><span title="Notifications">♧</span></div>
             </header>
             <main>
                 <div class="heading">
@@ -121,19 +106,19 @@ $totalPayouts = array_sum(array_map(static function ($account) { return (float) 
                 </div>
                 <?php if ($message !== ''): ?><div class="notice <?php echo htmlspecialchars($messageType); ?>"><?php echo htmlspecialchars($message); ?></div><?php endif; ?>
                 <section class="overview">
-                    <div class="profile-card"><div class="profile-cover"></div><img class="avatar" src="../images/protest.png" alt="Account overview"><h2>Customer &amp; Provider Accounts</h2><p>Finance account overview</p></div>
+                    <div class="profile-card"><div class="profile-cover"></div><img class="avatar" src="/FixLine/View/images/protest.png" alt="Account overview"><h2>Customer &amp; Provider Accounts</h2><p>Finance account overview</p></div>
                     <div class="stat-card"><div class="stat-label">Total Accounts</div><div class="stat-value"><?php echo count($accounts); ?></div><span class="stat-change">Live</span></div>
-                    <div class="stat-card"><div class="stat-label">Active / Pending</div><div class="stat-value"><?php echo $activeCount; ?> / <?php echo $pendingCount; ?></div><span class="stat-change">Status</span></div>
+                    <div class="stat-card"><div class="stat-label">Active / Blocked</div><div class="stat-value"><?php echo $activeCount; ?> / <?php echo $blockedCount; ?></div><span class="stat-change">Status</span></div>
                     <div class="stat-card"><div class="stat-label">Last Payments</div><div class="stat-value">$<?php echo number_format($totalPayments, 2); ?></div><span class="stat-change">Customers</span></div>
-                    <div class="stat-card"><div class="stat-label">Last Payouts</div><div class="stat-value">$<?php echo number_format($totalPayouts, 2); ?></div><span class="stat-change"><?php echo $suspendedCount; ?> suspended</span></div>
+                    <div class="stat-card"><div class="stat-label">Last Payouts</div><div class="stat-value">$<?php echo number_format($totalPayouts, 2); ?></div><span class="stat-change"><?php echo $blockedCount; ?> blocked</span></div>
                 </section>
                 <section class="account-table">
                     <div class="table-heading"><h2>Customers &amp; Service Providers</h2><form method="get"><input type="search" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search accounts" aria-label="Search accounts"></form></div>
-                    <div class="table-wrap"><table><thead><tr><th>Type</th><th>Name</th><th>ID</th><th>Email</th><th>Last Payment</th><th>Last Payout</th><th>Last Login</th><th>Status</th><th>Change Status</th></tr></thead><tbody>
+                    <div class="table-wrap"><table><thead><tr><th>Type</th><th>Name</th><th>ID</th><th>Email</th><th>Last Payment</th><th>Last Payout</th><th>Last Login</th><th>Status</th></tr></thead><tbody>
                         <?php foreach ($accounts as $account): ?>
-                            <tr><td><?php echo htmlspecialchars($account['account_type']); ?></td><td><?php echo htmlspecialchars($account['name']); ?></td><td><?php echo htmlspecialchars($account['account_id']); ?></td><td><?php echo htmlspecialchars($account['email']); ?></td><td><?php echo $account['last_payment'] !== null ? '$' . number_format((float) $account['last_payment'], 2) : '-'; ?></td><td><?php echo $account['last_payout'] !== null ? '$' . number_format((float) $account['last_payout'], 2) : '-'; ?></td><td><?php echo $account['last_login'] ? htmlspecialchars(date('d M Y', strtotime($account['last_login']))) : '-'; ?></td><td><span class="status <?php echo strtolower($account['status']); ?>"><?php echo htmlspecialchars($account['status']); ?></span></td><td><form class="status-form" method="post"><input type="hidden" name="account_id" value="<?php echo htmlspecialchars($account['account_id']); ?>"><select name="status" aria-label="Status for <?php echo htmlspecialchars($account['name']); ?>"><option <?php echo $account['status'] === 'Active' ? 'selected' : ''; ?>>Active</option><option <?php echo $account['status'] === 'Pending' ? 'selected' : ''; ?>>Pending</option><option <?php echo $account['status'] === 'Suspended' ? 'selected' : ''; ?>>Suspended</option></select><button type="submit" name="update_status">Save</button></form></td></tr>
+                            <tr><td><?php echo htmlspecialchars($account['account_type']); ?></td><td><?php echo htmlspecialchars($account['name']); ?></td><td><?php echo htmlspecialchars($account['account_id']); ?></td><td><?php echo htmlspecialchars($account['email']); ?></td><td><?php echo $account['last_payment'] !== null ? '$' . number_format((float) $account['last_payment'], 2) : '-'; ?></td><td><?php echo $account['last_payout'] !== null ? '$' . number_format((float) $account['last_payout'], 2) : '-'; ?></td><td><?php echo $account['last_login'] ? htmlspecialchars(date('d M Y', strtotime($account['last_login']))) : '-'; ?></td><td><span class="status <?php echo strtolower($account['status']); ?>"><?php echo htmlspecialchars($account['status']); ?></span></td></tr>
                         <?php endforeach; ?>
-                        <?php if (!$accounts): ?><tr><td colspan="9" class="empty-state">No customer or provider accounts found.</td></tr><?php endif; ?>
+                        <?php if (!$accounts): ?><tr><td colspan="8" class="empty-state">No customer or provider accounts found.</td></tr><?php endif; ?>
                     </tbody></table></div>
                 </section>
             </main>

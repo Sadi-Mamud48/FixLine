@@ -56,7 +56,7 @@ $activePage = 'apply_job';
                         </div>
 
                         <!-- Hidden application form, revealed by the button above -->
-                        <form action="service_provider.php?action=apply_job" method="POST"
+                        <form action="/FixLine/index.php?action=provider_apply_job" method="POST"
                               class="fx-apply-form fx-card-solid" id="fx-apply-form-<?= (int) $job['id'] ?>" style="display:none;">
                             <input type="hidden" name="job_id" value="<?= (int) $job['id'] ?>">
 
