@@ -60,7 +60,7 @@ require_once __DIR__ . '/header.php';
             </p>              
 
             <!-- Option 1: Service Provider -->             
-            <a href="index.php?action=account_management&category=Service+Provider" class="nav-pill-btn">                 
+            <a href="index.php?action=account_management&category=provider" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/electrician.png" alt="Service Provider">                 
                 </div>                 
@@ -70,7 +70,7 @@ require_once __DIR__ . '/header.php';
             </a>              
 
             <!-- Option 2: Moderator -->             
-            <a href="index.php?action=account_management&category=Moderator" class="nav-pill-btn">                 
+            <a href="index.php?action=account_management&category=moderator" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/afnan.png" alt="Moderator">                 
                 </div>                 
@@ -80,7 +80,7 @@ require_once __DIR__ . '/header.php';
             </a>              
 
             <!-- Option 3: Customer / User -->             
-            <a href="index.php?action=account_management&category=Customer" class="nav-pill-btn">                 
+            <a href="index.php?action=account_management&category=customer" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/userinfo.png" alt="Customer">                 
                 </div>                 
@@ -93,7 +93,7 @@ require_once __DIR__ . '/header.php';
             <!-- STEP 2: USER LIST UNDER SELECTED CATEGORY -->             
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">                 
                 <span style="color: #ffdd59; font-size: 16px; font-weight: bold;">                     
-                    Category: <?php echo htmlspecialchars($category); ?>                 
+                    Category: <?php echo htmlspecialchars(ucfirst($category)); ?>                 
                 </span>                 
                 <a href="index.php?action=account_management" style="color: #ffffff; font-size: 12px; text-decoration: underline;">                     
                     Change Category                 
@@ -103,7 +103,7 @@ require_once __DIR__ . '/header.php';
             <?php              
             $catUsersCount = 0;             
             foreach ($allUsers as $key => $u):                 
-                if ($u['role'] === $category):                     
+                if (strtolower((string) $u['role']) === $category):                     
                     $catUsersCount++;             
             ?>                 
                 <a href="index.php?action=profile_detail&id=<?php echo urlencode($key); ?>" class="nav-pill-btn">                     
@@ -113,14 +113,25 @@ require_once __DIR__ . '/header.php';
                     <div class="pill-textbox" style="text-align: left; padding: 10px 18px;">                         
                         <div style="font-weight: bold; font-size: 16px;"><?php echo htmlspecialchars($u['name']); ?></div>                         
                         <div style="font-size: 12px; color: #ffdd59;">                             
-                            <?php                                  
-                                if ($key === 'plumber') echo 'Plumber Specialist';                                 
-                                elseif ($key === 'electrician') echo 'Electrician Specialist';                                 
-                                else echo htmlspecialchars($u['role']);                             
-                            ?>                         
+                            <?php echo htmlspecialchars($u['profession'] ?: ($u['role_label'] ?? $u['role'])); ?>
+                            <?php if ($u['role'] === 'provider' && !empty($u['provider_status'])): ?>
+                                <span style="margin-left: 6px;">(<?php echo htmlspecialchars($u['provider_status']); ?>)</span>
+                            <?php endif; ?>
                         </div>                     
                     </div>                 
                 </a>             
+                <?php if ($u['role'] === 'provider' && !empty($u['provider_id']) && ($u['provider_status'] ?? '') === 'pending'): ?>
+                    <div style="margin: -18px 0 8px 90px; display: flex; gap: 8px;">
+                        <form method="POST" action="index.php?action=update_provider_status">
+                            <input type="hidden" name="provider_id" value="<?php echo (int) $u['provider_id']; ?>">
+                            <button class="btn-purple" type="submit" name="status" value="approved" style="padding: 6px 10px; font-size: 12px;">Approve</button>
+                        </form>
+                        <form method="POST" action="index.php?action=update_provider_status">
+                            <input type="hidden" name="provider_id" value="<?php echo (int) $u['provider_id']; ?>">
+                            <button class="btn-purple" type="submit" name="status" value="rejected" style="padding: 6px 10px; font-size: 12px; background: #8e2d2d;">Reject</button>
+                        </form>
+                    </div>
+                <?php endif; ?>
             <?php                  
                 endif;             
             endforeach;               

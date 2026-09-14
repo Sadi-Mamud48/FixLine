@@ -1,6 +1,12 @@
 <?php
 // Expects: $provider (array), $message (string) — supplied by ServiceProviderController::profile()
 $activePage = 'profile';
+$serviceCategories = [
+    'plumber' => 'Plumber',
+    'electrician' => 'Electrician',
+    'painter' => 'Painter & Decorator',
+    'repairer' => 'Appliance Repairer',
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +37,7 @@ $activePage = 'profile';
                 <div class="fx-picture-uploader">
                     <img id="fx-avatar-preview"
                          class="fx-avatar"
-                         src="<?= htmlspecialchars($provider['profile_picture'] ?? 'View/images/default-avatar.png') ?>"
+                         src="<?= htmlspecialchars($provider['profile_picture'] ?? '/FixLine/View/images/plumber.png') ?>"
                          alt="Profile picture">
 
                     <div>
@@ -42,7 +48,7 @@ $activePage = 'profile';
                 </div>
 
                 <!-- ===== Profile details form (plain POST, no AJAX needed) ===== -->
-                <form action="service_provider.php?action=profile" method="POST">
+                <form action="/FixLine/index.php?action=provider_profile" method="POST">
                     <div class="fx-form-group">
                         <label for="profession">Profession</label>
                         <input type="text" id="profession" name="profession" required
@@ -70,32 +76,65 @@ $activePage = 'profile';
                 </form>
 
                 <h3 style="color:var(--fx-purple-dark);margin:32px 0 12px;">Services and Costs</h3>
-                <?php foreach (($providerServices ?? []) as $service): ?>
-                    <form action="service_provider.php?action=profile" method="POST" style="margin-bottom:16px;">
-                        <input type="hidden" name="service_id" value="<?= (int) $service['id'] ?>">
+                <?php $providerServices = $providerServices ?? []; ?>
+                <?php if ($providerServices): ?>
+                    <?php $firstService = $providerServices[0]; ?>
+                    <div class="fx-form-group">
+                        <label for="service-selector">Service to update</label>
+                        <select id="service-selector" aria-label="Service to update">
+                            <?php foreach ($providerServices as $service): ?>
+                                <option value="<?= (int) $service['id'] ?>"><?= htmlspecialchars($service['service_name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <form id="service-update-form" action="/FixLine/index.php?action=provider_profile" method="POST" style="margin-bottom:16px;">
+                        <input id="service-id" type="hidden" name="service_id" value="<?= (int) $firstService['id'] ?>">
                         <div class="fx-form-group">
-                            <label>Service name <input type="text" name="service_name" value="<?= htmlspecialchars($service['service_name']) ?>" required></label>
+                            <label>Service name <input id="service-name" type="text" name="service_name" value="<?= htmlspecialchars($firstService['service_name']) ?>" required></label>
                         </div>
                         <div class="fx-form-group">
-                            <label>Category <input type="text" name="category" value="<?= htmlspecialchars($service['category']) ?>" required></label>
+                            <label>Category
+                                <select id="service-category" name="category" required>
+                                    <?php foreach ($serviceCategories as $value => $label): ?>
+                                        <option value="<?= $value ?>" <?= strtolower($firstService['category']) === $value ? 'selected' : '' ?>><?= $label ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
                         </div>
                         <div class="fx-form-group">
-                            <label>Cost (Tk) <input type="number" name="price" min="0" step="0.01" value="<?= htmlspecialchars($service['price']) ?>" required></label>
+                            <label>Cost (Tk) <input id="service-price" type="number" name="price" min="0" step="0.01" value="<?= htmlspecialchars($firstService['price']) ?>" required></label>
                         </div>
                         <div class="fx-form-group">
-                            <label>Description <textarea name="service_description"><?= htmlspecialchars($service['description'] ?? '') ?></textarea></label>
+                            <label>Description <textarea id="service-description" name="service_description"><?= htmlspecialchars($firstService['description'] ?? '') ?></textarea></label>
                         </div>
                         <button type="submit" name="save_service" value="1" class="fx-btn">Update Service</button>
                     </form>
-                <?php endforeach; ?>
+                    <script>
+                        (() => {
+                            const services = <?= json_encode(array_values($providerServices), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                            const selector = document.getElementById('service-selector');
+                            const fields = {
+                                id: document.getElementById('service-id'),
+                                name: document.getElementById('service-name'),
+                                category: document.getElementById('service-category'),
+                                price: document.getElementById('service-price'),
+                                description: document.getElementById('service-description'),
+                            };
 
-                <form action="service_provider.php?action=profile" method="POST">
-                    <div class="fx-form-group"><label>Service name <input type="text" name="service_name" required></label></div>
-                    <div class="fx-form-group"><label>Category <input type="text" name="category" required></label></div>
-                    <div class="fx-form-group"><label>Cost (Tk) <input type="number" name="price" min="0" step="0.01" required></label></div>
-                    <div class="fx-form-group"><label>Description <textarea name="service_description"></textarea></label></div>
-                    <button type="submit" name="save_service" value="1" class="fx-btn">Add Service</button>
-                </form>
+                            selector.addEventListener('change', () => {
+                                const service = services.find((item) => String(item.id) === selector.value);
+                                if (!service) return;
+                                fields.id.value = service.id;
+                                fields.name.value = service.service_name;
+                                fields.category.value = String(service.category).toLowerCase();
+                                fields.price.value = service.price;
+                                fields.description.value = service.description || '';
+                            });
+                        })();
+                    </script>
+                <?php else: ?>
+                    <p>You have not added any services yet.</p>
+                <?php endif; ?>
             </div>
         </div>
 

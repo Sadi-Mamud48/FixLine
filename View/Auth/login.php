@@ -50,8 +50,14 @@ unset($_SESSION['auth_error'], $_SESSION['auth_message']);
             <h1>Welcome to<br>FixLine</h1>
             <?php if ($error !== null): ?><div class="notice"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <?php if ($message !== null): ?><div class="notice"><?= htmlspecialchars($message) ?></div><?php endif; ?>
-            <div class="tabs"><a class="active" href="login.php">Log in</a><a href="customer_signup.php">Sign in</a></div>
-            <form method="post" action="/FixLine/cindex.php?action=login">
+            <div class="tabs"><a class="active" href="/FixLine/index.php?action=login">Log in</a><a href="/FixLine/index.php?action=customer_signup">Sign in</a></div>
+            <form method="post" action="/FixLine/index.php?action=login">
+                <label for="role">Log in as</label>
+                <select id="role" name="role" required style="width:100%;padding:12px;margin-bottom:20px;border:1px solid #aaa;font-size:15px;">
+                    <option value="customer">Customer</option>
+                    <option value="provider">Service Provider</option>
+                    <option value="other">Others</option>
+                </select>
                 <label for="email">Email</label>
                 <input id="email" type="text" name="email" required autocomplete="username">
                 <div class="password-row"><label for="password">Password</label><input id="password" type="password" name="password" required autocomplete="current-password"><button type="button" onclick="togglePassword()">&#128065;</button></div>

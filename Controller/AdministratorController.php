@@ -54,6 +54,9 @@ class AdministratorController {
             case 'toggle_block':                 
                 $this->toggleBlock();                 
                 break;             
+            case 'update_provider_status':
+                $this->updateProviderStatus();
+                break;
             case 'analytics':                 
                 $this->showAnalytics();                 
                 break;             
@@ -164,12 +167,14 @@ class AdministratorController {
     }      
 
     private function showDashboard() {         
+        $dashboard = $this->adminModel->getDashboardData();
         require_once __DIR__ . '/../View/Administrator/dashboard.php';     
     }      
 
     private function showAccountManagement() {         
         $allUsers = $this->adminModel->getAllUsers();         
-        $category = $_GET['category'] ?? null;         
+        $category = strtolower(trim($_GET['category'] ?? ''));         
+        $category = $category !== '' ? $category : null;
         $search = strtolower($_GET['search'] ?? '');         
         require_once __DIR__ . '/../View/Administrator/account_management.php';     
     }      
@@ -187,9 +192,11 @@ class AdministratorController {
     private function saveProfile() {         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {             
             $id = $_POST['id'] ?? '';             
+            $role = strtolower(trim($_POST['role'] ?? 'customer'));
+            $role = str_replace('service provider', 'provider', $role);
             $data = [                 
                 'name' => $_POST['account_name'] ?? '',                 
-                'role' => $_POST['role'] ?? '',                 
+                'role' => $role,
                 'phone' => $_POST['phone_number'] ?? '',                 
                 'email' => $_POST['email'] ?? ''             
             ];             
@@ -209,15 +216,7 @@ class AdministratorController {
     }      
 
     private function showAnalytics() {         
-        $analytics = [             
-            'total_bookings' => 1248,             
-            'active_users' => 580,             
-            'total_revenue' => '৳ 4,85,000',             
-            'top_providers' => [                 
-                ['name' => 'Tanvir Ahmed', 'service' => 'Electrician', 'rating' => '4.9 ★'],                 
-                ['name' => 'MD. Faiz Uddin', 'service' => 'Plumber', 'rating' => '4.7 ★']             
-            ]         
-        ];         
+        $analytics = $this->adminModel->getAnalytics();
         require_once __DIR__ . '/../View/Administrator/analytics.php';     
     }      
 
@@ -225,4 +224,14 @@ class AdministratorController {
         $users = $this->adminModel->getAllUsers();         
         require_once __DIR__ . '/../View/Administrator/users_info.php';     
     } 
+    
+    private function updateProviderStatus() {
+        $providerId = (int) ($_POST['provider_id'] ?? 0);
+        $status = $_POST['status'] ?? '';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $providerId > 0) {
+            $this->adminModel->updateProviderStatus($providerId, $status);
+        }
+        header('Location: index.php?action=account_management&category=provider');
+        exit;
+    }
 }

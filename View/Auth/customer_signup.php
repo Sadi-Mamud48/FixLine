@@ -45,11 +45,11 @@ unset($_SESSION['auth_error']);
         <section class="panel">
             <img class="brand" src="/FixLine/View/images/protest.png" alt="FixLine">
             <nav class="top-nav"><a href="#">Home</a><a href="#">About us</a><a href="#">Contact us</a><a href="#">Help</a></nav>
-            <a class="back" href="login.php" aria-label="Back"><img src="../images/left-arrow.png" alt="Back"></a>
+            <a class="back" href="/FixLine/index.php?action=login" aria-label="Back"><img src="../images/left-arrow.png" alt="Back"></a>
             <h1>Welcome to<br>FixLine</h1>
             <?php if ($error !== null): ?><div class="notice"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-            <div class="tabs"><a href="login.php">Log in</a><a class="active" href="customer_signup.php">Sign in</a></div>
-            <form method="post" action="/FixLine/cindex.php?action=customer_signup">
+            <div class="tabs"><a href="/FixLine/index.php?action=login">Log in</a><a class="active" href="/FixLine/index.php?action=customer_signup">Sign in</a></div>
+            <form method="post" action="/FixLine/index.php?action=customer_signup">
                 <label for="account_type">Account type</label>
                 <select id="account_type" class="account-type" name="account_type">
                     <option value="customer" selected>Customer</option>
@@ -82,12 +82,12 @@ unset($_SESSION['auth_error']);
 
         const accountType = document.getElementById('account_type');
         const providerFields = document.getElementById('provider-fields');
-        const profession = document.getElementById('profession');
+        const workType = document.getElementById('work_type');
 
         accountType.addEventListener('change', () => {
             const providerSelected = accountType.value === 'provider';
             providerFields.style.display = providerSelected ? 'block' : 'none';
-            profession.required = providerSelected;
+            workType.required = providerSelected;
         });
     </script>
 </body>

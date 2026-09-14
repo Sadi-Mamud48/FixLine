@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../Model/Moderator.php';
 $moderatorModel = new Moderator();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['suspend_id'])) {
-    $moderatorModel->updateProviderStatus($_POST['suspend_id'], 'suspended');
-    header("Location: account_management.php");
+    $moderatorModel->updateProviderStatus($_POST['suspend_id'], 'rejected');
+    header("Location: /FixLine/index.php?action=moderator_account_management");
     exit();
 }
 
@@ -38,7 +38,7 @@ $approvedProviders = $moderatorModel->getProvidersByStatus('approved');
     <div class="dashboard-main">
       <header class="header">
         <h2>Verified Service Technicians Monitoring</h2>
-        <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
       <div class="content-area">
         <table class="data-table">

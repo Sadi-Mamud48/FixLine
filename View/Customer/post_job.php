@@ -41,7 +41,7 @@ unset($_SESSION['job_message'], $_SESSION['job_error']);
             <div class="notice"><?= htmlspecialchars($jobError) ?></div>
         <?php endif; ?>
 
-        <form action="/FixLine/cindex.php?action=post_job" method="post">
+        <form action="/FixLine/index.php?action=post_job" method="post">
             <label>
                 Job title
                 <input type="text" name="title" maxlength="150" required placeholder="e.g. Repair leaking kitchen pipe">

@@ -17,10 +17,10 @@ class FinanceOfficer
 	public function getNavigationItems()
 	{
 		return [
-			['label' => 'Payments', 'url' => 'payments.php', 'image' => 'payment-method (1).png'],
-			['label' => 'Payout', 'url' => 'payout.php', 'image' => 'atm.png'],
-			['label' => 'Refunds', 'url' => 'refunds.php', 'image' => 'refund.png'],
-			['label' => 'Account Management', 'url' => 'account-management.php', 'image' => 'accountant.png'],
+			['label' => 'Payments', 'url' => '/FixLine/index.php?action=finance_payments', 'image' => 'payment-method (1).png'],
+			['label' => 'Payout', 'url' => '/FixLine/index.php?action=finance_payout', 'image' => 'atm.png'],
+			['label' => 'Refunds', 'url' => '/FixLine/index.php?action=finance_refunds', 'image' => 'refund.png'],
+			['label' => 'Account Management', 'url' => '/FixLine/index.php?action=finance_account_management', 'image' => 'accountant.png'],
 		];
 	}
 

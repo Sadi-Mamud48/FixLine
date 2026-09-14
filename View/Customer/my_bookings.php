@@ -75,7 +75,7 @@ if (!isset($bookings)) {
 
 	<div class="page-header">
 		<h1>My Bookings</h1>
-		<a href="/FixLine/View/Customer/customer_dashboard.php">Back to Dashboard</a>
+		<a href="/FixLine/index.php?action=customer_dashboard">Back to Dashboard</a>
 	</div>
 
 	<?php if (empty($bookings)): ?>
@@ -92,7 +92,7 @@ if (!isset($bookings)) {
 					<p><strong>Price:</strong> <?= htmlspecialchars(number_format((float) $booking['price'], 2)) ?></p>
 					<div class="booking-actions">
 						<?php if (!empty($booking['service_id']) && $booking['status'] === 'completed'): ?>
-							<form id="review-form-<?= (int) $booking['id'] ?>" class="review-form" action="/FixLine/cindex.php?action=review" method="post">
+							<form id="review-form-<?= (int) $booking['id'] ?>" class="review-form" action="/FixLine/index.php?action=review" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<input type="hidden" name="service_id" value="<?= (int) $booking['service_id'] ?>">
 								<label>
@@ -105,13 +105,13 @@ if (!isset($bookings)) {
 								</label>
 							</form>
 							<button type="submit" form="review-form-<?= (int) $booking['id'] ?>">Review</button>
-							<form action="/FixLine/cindex.php?action=payment" method="post">
+							<form action="/FixLine/index.php?action=payment" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<button class="pay-button" type="submit">Pay</button>
 							</form>
 						<?php endif; ?>
 						<?php if ($booking['status'] === 'pending'): ?>
-							<form action="/FixLine/cindex.php?action=cancel_booking" method="post">
+							<form action="/FixLine/index.php?action=cancel_booking" method="post">
 								<input type="hidden" name="booking_id" value="<?= (int) $booking['id'] ?>">
 								<button class="cancel-button" type="submit">Cancel</button>
 							</form>

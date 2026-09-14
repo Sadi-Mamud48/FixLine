@@ -27,7 +27,7 @@ require_once __DIR__ . '/header.php';
             <div class="profile-body-grid">                 
                 <div>                     
                     <div class="photo-placeholder">                         
-                        <img src="View/<?php echo htmlspecialchars($user['photo']); ?>" alt="Photo">                     
+                            <img src="<?php echo htmlspecialchars($user['photo_src'] ?? ('View/' . $user['photo'])); ?>" alt="Photo">                         
                     </div>                     
                     <p style="text-align: center; margin-top: 8px; font-weight: bold; font-size: 13px;">Photo</p>                 
                 </div>                  
@@ -49,12 +49,23 @@ require_once __DIR__ . '/header.php';
                     <div class="form-group">                         
                         <label>Role</label>                         
                         <select name="role" class="form-control">                             
-                            <option value="Customer" <?php if ($user['role'] === 'Customer') echo 'selected'; ?>>Customer</option>                             
-                            <option value="Service Provider" <?php if ($user['role'] === 'Service Provider') echo 'selected'; ?>>Service Provider</option>                             
-                            <option value="Moderator" <?php if ($user['role'] === 'Moderator') echo 'selected'; ?>>Moderator</option>                             
-                            <option value="Admin" <?php if ($user['role'] === 'Admin') echo 'selected'; ?>>Admin</option>                         
+                            <option value="customer" <?php if ($user['role'] === 'customer') echo 'selected'; ?>>Customer</option>                             
+                            <option value="provider" <?php if ($user['role'] === 'provider') echo 'selected'; ?>>Service Provider</option>                             
+                            <option value="moderator" <?php if ($user['role'] === 'moderator') echo 'selected'; ?>>Moderator</option>                             
+                            <option value="finance" <?php if ($user['role'] === 'finance') echo 'selected'; ?>>Finance Officer</option>
+                            <option value="admin" <?php if ($user['role'] === 'admin') echo 'selected'; ?>>Admin</option>                         
                         </select>                     
                     </div>                      
+                    <?php if (($user['role'] ?? '') === 'provider'): ?>
+                        <div class="form-group">
+                            <label>Profession</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['profession'] ?? ''); ?>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Provider Status</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($user['provider_status'] ?? 'pending'); ?>" readonly>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Phone Number Field -->                     
                     <div class="form-group">                         

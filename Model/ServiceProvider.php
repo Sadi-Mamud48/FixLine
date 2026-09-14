@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/database/Database.php';
+require_once __DIR__ . '/../Config/Database.php';
 
 class ServiceProvider
 {
@@ -33,7 +33,13 @@ class ServiceProvider
     // Fetch the full profile (joined with users table) for one provider
     public function getProfile(int $providerId): ?array
     {
-        $sql = "SELECT sp.*, u.name, u.email
+        $sql = "SELECT sp.*, u.name, u.email,
+                       COALESCE((
+                           SELECT ROUND(AVG(r.rating), 1)
+                           FROM reviews r
+                           JOIN services rated_service ON rated_service.id = r.service_id
+                           WHERE rated_service.provider_id = sp.id
+                       ), sp.rating, 0.0) AS rating
                 FROM service_providers sp
                 INNER JOIN users u ON u.id = sp.user_id
                 WHERE sp.id = :id
@@ -73,7 +79,9 @@ class ServiceProvider
             "SELECT id, service_name, category, description, price
              FROM services WHERE provider_id = :provider_id ORDER BY service_name"
         );
-        $stmt->execute([':provider_id' => $providerId]);
+        $stmt->execute([
+            ':provider_id' => $providerId,
+        ]);
 
         return $stmt->fetchAll();
     }
@@ -204,7 +212,12 @@ class ServiceProvider
         $sql = "SELECT sr.*, u.name AS customer_name
                 FROM service_requests sr
                 LEFT JOIN users u ON u.id = sr.customer_id
-                WHERE sr.provider_id = :provider_id
+                     WHERE (sr.provider_id = :provider_id
+                         OR (sr.provider_id IS NULL AND EXISTS (
+                              SELECT 1 FROM service_providers target_provider
+                              WHERE target_provider.id = :provider_match_id
+                                 AND LOWER(target_provider.profession) = LOWER(sr.category)
+                         )))
                   AND sr.status <> 'rejected'
                   AND NOT EXISTS (
                       SELECT 1 FROM bookings b
@@ -214,7 +227,10 @@ class ServiceProvider
                 ORDER BY sr.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':provider_id' => $providerId]);
+        $stmt->execute([
+            ':provider_id' => $providerId,
+            ':provider_match_id' => $providerId,
+        ]);
 
         return $stmt->fetchAll();
     }
@@ -226,16 +242,20 @@ class ServiceProvider
             return false;
         }
 
-        $sql = "UPDATE service_requests
-                SET status = :status
-                WHERE id = :id AND provider_id = :provider_id AND status = 'new'";
+        $sql = "UPDATE service_requests sr
+            JOIN service_providers provider ON provider.id = :provider_match_id
+            SET sr.status = :status, sr.provider_id = provider.id
+            WHERE sr.id = :id
+              AND sr.status = 'new'
+              AND (sr.provider_id = provider.id
+                   OR (sr.provider_id IS NULL AND LOWER(provider.profession) = LOWER(sr.category)))";
 
         $stmt = $this->db->prepare($sql);
 
         $stmt->execute([
             ':status'      => $status,
             ':id'          => $requestId,
-            ':provider_id' => $providerId,
+            ':provider_match_id' => $providerId,
         ]);
 
         if ($stmt->rowCount() > 0) {
@@ -271,7 +291,7 @@ class ServiceProvider
             $booking = $this->db->prepare(
                 "UPDATE bookings b
                  INNER JOIN service_requests sr ON sr.id = b.service_request_id
-                 SET b.status = 'completed'
+                 SET b.status = 'completed', sr.status = 'completed'
                  WHERE b.service_request_id = :request_id
                    AND b.status = 'confirmed'
                    AND sr.provider_id = :provider_id
@@ -295,6 +315,21 @@ class ServiceProvider
                  WHERE id = :provider_id"
             );
             $provider->execute([':provider_id' => $providerId]);
+
+                        $earnings = $this->db->prepare(
+                            "INSERT INTO earnings (provider_id, job_id, amount, status)
+                             SELECT :provider_id, j.id, COALESCE(sr.budget, s.price, 0), 'pending'
+                                 FROM service_requests sr
+                                 LEFT JOIN services s ON s.id = sr.service_id
+                             LEFT JOIN job_applications ja ON ja.id = sr.job_application_id
+                             LEFT JOIN jobs j ON j.id = ja.job_id
+                                 WHERE sr.id = :request_id
+                            "
+                        );
+                        $earnings->execute([
+                                ':provider_id' => $providerId,
+                                ':request_id' => $requestId,
+                        ]);
 
             $this->db->commit();
             return true;

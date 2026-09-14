@@ -44,29 +44,46 @@ class CustomerController
                     );
                 } else {
                     $profilePhoto = null;
-                    if (!empty($_FILES['profile_photo']['tmp_name'])) {
-                        if ($_FILES['profile_photo']['error'] !== UPLOAD_ERR_OK) {
-                            throw new RuntimeException('The profile photo could not be uploaded.');
+                    $uploadedFile = $_FILES['profile_photo'] ?? null;
+                    if ($uploadedFile && $uploadedFile['error'] !== UPLOAD_ERR_NO_FILE) {
+                        if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+                            throw new RuntimeException('The profile photo upload failed (error code ' . $uploadedFile['error'] . ').');
                         }
 
-                        $extension = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
-                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-
-                        if (!in_array($extension, $allowedExtensions, true)) {
-                            throw new RuntimeException('Please upload a JPG, PNG, or WEBP image.');
+                        if (!is_uploaded_file($uploadedFile['tmp_name'])) {
+                            throw new RuntimeException('The selected profile photo is not a valid upload.');
                         }
 
-                        $directory = __DIR__ . '/../View/images/profiles';
-                        if (!is_dir($directory)) {
-                            mkdir($directory, 0755, true);
+                        if ($uploadedFile['size'] > 5 * 1024 * 1024) {
+                            throw new RuntimeException('The profile photo must be 5 MB or smaller.');
                         }
 
-                        $filename = 'user_' . $userId . '.' . $extension;
-                        if (!move_uploaded_file($_FILES['profile_photo']['tmp_name'], $directory . '/' . $filename)) {
+                        $imageType = @exif_imagetype($uploadedFile['tmp_name']);
+                        $extensionsByImageType = [
+                            IMAGETYPE_JPEG => 'jpg',
+                            IMAGETYPE_PNG => 'png',
+                            IMAGETYPE_WEBP => 'webp',
+                        ];
+                        if (!isset($extensionsByImageType[$imageType])) {
+                            throw new RuntimeException('Please upload a valid JPG, PNG, or WEBP image.');
+                        }
+
+                        // Keep user-uploaded files outside the view assets directory.
+                        // This is also the shared writable upload location used by provider profiles.
+                        $directory = __DIR__ . '/../uploads/profile_pictures';
+                        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+                            throw new RuntimeException('The profile-photo upload directory could not be created.');
+                        }
+                        if (!is_writable($directory)) {
+                            throw new RuntimeException('The profile-photo upload directory is not writable by the web server.');
+                        }
+
+                        $filename = 'user_' . $userId . '_' . bin2hex(random_bytes(8)) . '.' . $extensionsByImageType[$imageType];
+                        if (!move_uploaded_file($uploadedFile['tmp_name'], $directory . '/' . $filename)) {
                             throw new RuntimeException('The profile photo could not be saved.');
                         }
 
-                        $profilePhoto = '/FixLine/View/images/profiles/' . $filename;
+                        $profilePhoto = '/FixLine/uploads/profile_pictures/' . $filename;
                     }
 
                     $this->customerModel->updateProfile(
@@ -84,7 +101,7 @@ class CustomerController
             }
 
             $tab = ($_POST['settings_section'] ?? 'profile') === 'account' ? 'account' : 'profile';
-            header("Location: /FixLine/cindex.php?action=account_settings&tab={$tab}");
+            header("Location: /FixLine/index.php?action=account_settings&tab={$tab}");
             exit();
         }
 
@@ -130,7 +147,7 @@ class CustomerController
             $bookingDate = trim($_POST['booking_date'] ?? '');
             $returnCategory = trim($_POST['return_category'] ?? '');
             $returnSearch = trim($_POST['return_search'] ?? '');
-            $returnUrl = '/FixLine/cindex.php?action=search';
+            $returnUrl = '/FixLine/index.php?action=search';
 
             if ($returnCategory !== '') {
                 $returnUrl .= '&category=' . rawurlencode($returnCategory);
@@ -220,7 +237,7 @@ class CustomerController
                 }
             }
 
-            header('Location: /FixLine/cindex.php?action=post_job');
+            header('Location: /FixLine/index.php?action=post_job');
             exit();
         }
 
@@ -250,7 +267,7 @@ class CustomerController
             }
 
             $categoryQuery = $category !== '' ? '&category=' . rawurlencode($category) : '';
-            header("Location: /FixLine/cindex.php?action=search{$categoryQuery}");
+            header("Location: /FixLine/index.php?action=search{$categoryQuery}");
             exit();
         }
     }
@@ -288,7 +305,7 @@ class CustomerController
                 $_SESSION['booking_error'] = $exception->getMessage();
             }
 
-            header("Location: cindex.php?action=my_bookings");
+            header("Location: /FixLine/index.php?action=my_bookings");
             exit();
         }
     }
@@ -309,7 +326,7 @@ class CustomerController
             }
         }
 
-        header('Location: /FixLine/cindex.php?action=my_bookings');
+        header('Location: /FixLine/index.php?action=my_bookings');
         exit();
     }
 
@@ -329,7 +346,7 @@ class CustomerController
             $_SESSION['booking_error'] = $exception->getMessage();
         }
 
-        header('Location: /FixLine/cindex.php?action=my_bookings');
+        header('Location: /FixLine/index.php?action=my_bookings');
         exit();
     }
 
@@ -352,7 +369,7 @@ class CustomerController
                 $_SESSION['refund_error'] = 'This payment is not available for a refund request.';
             }
 
-            header('Location: /FixLine/View/Customer/refunds.php');
+            header('Location: /FixLine/index.php?action=refunds');
             exit();
         }
 

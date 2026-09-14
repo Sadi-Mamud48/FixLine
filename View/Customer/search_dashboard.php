@@ -73,7 +73,7 @@ unset($_SESSION['booking_error']);
 
 	<div class="page-header">
 		<h1>Available Services</h1>
-		<a href="View/Customer/customer_dashboard.php">Back to Dashboard</a>
+		<a href="/FixLine/index.php?action=customer_dashboard">Back to Dashboard</a>
 	</div>
 
 	<?php if (empty($services) && empty($jobApplications)): ?>
@@ -87,7 +87,7 @@ unset($_SESSION['booking_error']);
 					<p><strong>Provider:</strong> <?= htmlspecialchars($service['provider_name'] ?? '') ?></p>
 					<p><strong>Affiliate:</strong> <?= htmlspecialchars($service['affiliate'] ?? 'Not specified') ?></p>
 					<p><strong>Cost:</strong> Tk <?= htmlspecialchars(number_format((float) $service['price'], 2)) ?></p>
-					<form action="/FixLine/cindex.php?action=request_service" method="post">
+					<form action="/FixLine/index.php?action=request_service" method="post">
 						<input type="hidden" name="service_id" value="<?= (int) $service['id'] ?>">
 						<input type="hidden" name="provider_id" value="<?= (int) $service['provider_id'] ?>">
 						<input type="hidden" name="title" value="<?= htmlspecialchars($service['service_name'], ENT_QUOTES) ?>">
@@ -114,7 +114,7 @@ unset($_SESSION['booking_error']);
 					<p><strong>Provider:</strong> <?= htmlspecialchars($application['provider_name']) ?></p>
 					<p><strong>Affiliate:</strong> <?= htmlspecialchars($application['affiliate'] ?? 'Not specified') ?></p>
 					<p><strong>Proposed cost:</strong> Tk <?= htmlspecialchars(number_format((float) $application['price'], 2)) ?></p>
-					<form action="/FixLine/cindex.php?action=request_service" method="post">
+					<form action="/FixLine/index.php?action=request_service" method="post">
 						<input type="hidden" name="application_id" value="<?= (int) $application['application_id'] ?>">
 						<input type="hidden" name="provider_id" value="<?= (int) $application['provider_id'] ?>">
 						<input type="hidden" name="title" value="<?= htmlspecialchars($application['service_name'], ENT_QUOTES) ?>">

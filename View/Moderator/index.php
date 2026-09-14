@@ -65,7 +65,9 @@
     }
     .search-bar i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #4a5568; }
     
-    .header-icons { display: flex; gap: 24px; font-size: 22px; cursor: pointer; }
+    .header-icons { display: flex; align-items: center; gap: 18px; font-size: 22px; cursor: pointer; }
+    .logout-btn { color: #ffffff; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 6px; padding: 9px 14px; font-size: 14px; text-decoration: none; }
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
     
     .sidebar-menu { display: flex; flex-direction: column; gap: 20px; z-index: 5; position: relative; max-width: 350px; }
     .menu-item { display: flex; align-items: center; text-decoration: none; gap: 15px; }
@@ -75,7 +77,7 @@
     .menu-btn { border: 1.5px solid #ffffff; background: rgba(255, 255, 255, 0.15); color: white; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: 500; width: 100%; text-align: left; cursor: pointer; transition: 0.3s; }
     .menu-item:hover .menu-btn { background: rgba(255, 255, 255, 0.3); }
 
-    .illustration-bg { position: absolute; right: 40px; bottom: 0; width: 55%; height: 85%; background: url('../images/Backgroundpic2%202.jpg.jpeg') no-repeat right bottom; background-size: contain; opacity: 0.85; pointer-events: none; }
+    .illustration-bg { position: absolute; right: 40px; bottom: 0; width: 55%; height: 85%; background: url('/FixLine/View/images/Backgroundpic2%202.jpg.jpeg') no-repeat right bottom; background-size: contain; opacity: 0.85; pointer-events: none; }
     
     /* Footer Styling */
     .footer { background-color: rgba(255, 255, 255, 0.95); padding: 30px 60px; display: flex; justify-content: space-between; align-items: flex-start; color: #333; border-top: 1px solid #e2e8f0; }
@@ -116,27 +118,28 @@
           <i class="fa-regular fa-bell"></i>
           <i class="fa-regular fa-comment-dots"></i>
           <i class="fa-solid fa-gear"></i>
+          <a href="/FixLine/index.php?action=logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </div>
       </header>
 
       <div class="sidebar-menu">
-        <a href="customers.php" class="menu-item">
-          <div class="icon-circle"><img src="../images/services/Customers.png" alt="Customers"></div>
+        <a href="/FixLine/index.php?action=moderator_customers" class="menu-item">
+          <div class="icon-circle"><img src="/FixLine/View/images/services/Customers.png" alt="Customers"></div>
           <button class="menu-btn">Customers</button>
         </a>
 
-        <a href="providers.php" class="menu-item">
-          <div class="icon-circle"><img src="../images/services/Provider.png" alt="Providers"></div>
+        <a href="/FixLine/index.php?action=moderator_providers" class="menu-item">
+          <div class="icon-circle"><img src="/FixLine/View/images/services/Provider.png" alt="Providers"></div>
           <button class="menu-btn">Providers</button>
         </a>
 
-        <a href="complaints.php" class="menu-item">
-          <div class="icon-circle"><img src="../images/services/complaint.png" alt="Complaints"></div>
+        <a href="/FixLine/index.php?action=moderator_complaints" class="menu-item">
+          <div class="icon-circle"><img src="/FixLine/View/images/services/complaint.png" alt="Complaints"></div>
           <button class="menu-btn">Complaints</button>
         </a>
 
-        <a href="account_management.php" class="menu-item">
-          <div class="icon-circle"><img src="../images/services/Account%20management.png" alt="Account Management"></div>
+        <a href="/FixLine/index.php?action=moderator_account_management" class="menu-item">
+          <div class="icon-circle"><img src="/FixLine/View/images/services/Account%20management.png" alt="Account Management"></div>
           <button class="menu-btn">Account Management</button>
         </a>
       </div>

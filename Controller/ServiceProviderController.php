@@ -5,11 +5,13 @@
  * ServiceProviderController.php
  *
  * Front controller for every Service Provider screen.
- * Routed as:  service_provider.php?action=dashboard|profile|requests|apply_job|earnings
+ * Routed through index.php?action=provider_dashboard|provider_profile|provider_requests|provider_apply_job|provider_earnings
  * Plus one AJAX-only endpoint: action=upload_picture (returns JSON).
  */
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require_once __DIR__ . '/../Model/ServiceProvider.php';
 
@@ -26,10 +28,6 @@ class ServiceProviderController
 
     private function resolveProviderId(): int
     {
-        if (!empty($_SESSION['provider_id'])) {
-            return (int) $_SESSION['provider_id'];
-        }
-
         if (!empty($_SESSION['user_id'])) {
             $providerId = $this->model->getProviderIdByUserId((int) $_SESSION['user_id']);
             if ($providerId !== null) {
@@ -77,6 +75,7 @@ class ServiceProviderController
     private function dashboard(): void
     {
         $provider = $this->model->getProfile($this->providerId);
+        $provider = $this->withProfilePictureUrl($provider);
         $summary  = $this->model->getEarningsSummary($this->providerId);
 
         require __DIR__ . '/../View/ServiceProvider/dashboard.php';
@@ -91,15 +90,17 @@ class ServiceProviderController
 
         // Handle the text-field part of the profile form (normal POST, no AJAX)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_service'])) {
+            $serviceId = (int) ($_POST['service_id'] ?? 0);
             $serviceName = trim($_POST['service_name'] ?? '');
-            $category = trim($_POST['category'] ?? '');
+            $category = strtolower(trim($_POST['category'] ?? ''));
             $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
+            $allowedCategories = ['plumber', 'electrician', 'painter', 'repairer'];
 
-            if ($serviceName === '' || $category === '' || $price === false || $price < 0) {
-                $message = 'Enter a service name, category, and valid cost.';
+            if ($serviceId <= 0 || $serviceName === '' || !in_array($category, $allowedCategories, true) || $price === false || $price < 0) {
+                $message = 'Select an existing service, choose a valid category, and enter a valid cost.';
             } else {
                 $this->model->saveService($this->providerId, [
-                    'id' => (int) ($_POST['service_id'] ?? 0),
+                    'id' => $serviceId,
                     'service_name' => $serviceName,
                     'category' => $category,
                     'description' => trim($_POST['service_description'] ?? ''),
@@ -124,6 +125,7 @@ class ServiceProviderController
         }
 
         $provider = $this->model->getProfile($this->providerId);
+        $provider = $this->withProfilePictureUrl($provider);
         $providerServices = $this->model->getServices($this->providerId);
 
         require __DIR__ . '/../View/ServiceProvider/profile.php';
@@ -157,8 +159,6 @@ class ServiceProviderController
 
         $finfo    = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-
         if (!in_array($mimeType, $allowedTypes, true)) {
             echo json_encode(['success' => false, 'message' => 'Only JPG, PNG or WEBP images are allowed.']);
             return;
@@ -170,8 +170,8 @@ class ServiceProviderController
         }
 
         // --- Build a unique filename and move the upload ---
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename  = 'provider_' . $this->providerId . '_' . time() . '.' . $extension;
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename  = 'provider_' . $this->providerId . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
 
         // uploads/ lives at the project root, one level up from Controller/
         $uploadDir    = __DIR__ . '/../uploads/profile_pictures/';
@@ -179,7 +179,15 @@ class ServiceProviderController
         $relativePath = 'uploads/profile_pictures/' . $filename; // root-relative: stored in DB + used as <img src="">
 
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            mkdir($uploadDir, 0775, true);
+        }
+        if (is_dir($uploadDir) && !is_writable($uploadDir)) {
+            @chmod($uploadDir, 0777);
+        }
+
+        if (!is_writable($uploadDir)) {
+            echo json_encode(['success' => false, 'message' => 'Upload folder is not writable. Please check XAMPP folder permissions.']);
+            return;
         }
 
         if (!move_uploaded_file($file['tmp_name'], $uploadPathFs)) {
@@ -201,8 +209,28 @@ class ServiceProviderController
         echo json_encode([
             'success'  => true,
             'message'  => 'Profile picture updated.',
-            'imageUrl' => $relativePath, // root-relative, works directly as <img src="">
+            'imageUrl' => '/FixLine/' . $relativePath,
         ]);
+    }
+
+    private function withProfilePictureUrl(?array $provider): ?array
+    {
+        if (!$provider) {
+            return $provider;
+        }
+
+        $picture = $provider['profile_picture'] ?? '';
+        if ($picture === '') {
+            $provider['profile_picture'] = '/FixLine/View/images/plumber.png';
+        } elseif (strpos($picture, '/') === 0) {
+            $provider['profile_picture'] = $picture;
+        } elseif (strpos($picture, 'uploads/') === 0 || strpos($picture, 'View/') === 0) {
+            $provider['profile_picture'] = '/FixLine/' . $picture;
+        } else {
+            $provider['profile_picture'] = '/FixLine/View/' . ltrim($picture, '/');
+        }
+
+        return $provider;
     }
 
     /* =========================================================
@@ -310,7 +338,3 @@ class ServiceProviderController
         require __DIR__ . '/../View/ServiceProvider/earnings.php';
     }
 }
-
-// ---- Bootstrap ----
-$controller = new ServiceProviderController();
-$controller->handleRequest();

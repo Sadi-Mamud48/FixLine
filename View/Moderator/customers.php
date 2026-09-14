@@ -43,11 +43,11 @@ $customers = $moderatorModel->getCustomers();
   <div class="dashboard-card">
     <div class="dashboard-main">
       <header class="header">
-        <a href="index.php" class="brand-title">
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="brand-title">
           <i class="fa-solid fa-screwdriver-wrench"></i>
           <span>Moderators Dashboard</span>
         </a>
-        <a href="index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        <a href="/FixLine/index.php?action=moderator_dashboard" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
       </header>
 
       <div class="content-area">

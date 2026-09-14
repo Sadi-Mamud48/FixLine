@@ -21,8 +21,16 @@ require_once __DIR__ . '/header.php';
             </div>             
             <div class="stat-box">                 
                 <div>Total Revenue</div>                 
-                <div class="stat-num"><?php echo $analytics['total_revenue']; ?></div>             
+                <div class="stat-num">৳ <?php echo number_format((float) ($analytics['total_revenue'] ?? 0), 2); ?></div>             
             </div>         
+            <div class="stat-box">
+                <div>Pending Requests</div>
+                <div class="stat-num"><?php echo (int) ($analytics['pending_requests'] ?? 0); ?></div>
+            </div>
+            <div class="stat-box">
+                <div>Completed Services</div>
+                <div class="stat-num"><?php echo (int) ($analytics['completed_services'] ?? 0); ?></div>
+            </div>
         </div>          
 
         <h3 style="margin-top: 20px; color: #ffdd59;">Top Rated Service Providers</h3>         
@@ -39,7 +47,7 @@ require_once __DIR__ . '/header.php';
                     <tr>                         
                         <td><?php echo htmlspecialchars($tp['name']); ?></td>                         
                         <td><?php echo htmlspecialchars($tp['service']); ?></td>                         
-                        <td><span style="color: #ffdd59; font-weight: bold;"><?php echo htmlspecialchars($tp['rating']); ?></span></td>                     
+                        <td><span style="color: #ffdd59; font-weight: bold;"><?php echo number_format((float) ($tp['rating'] ?? 0), 1); ?> ★</span></td>                     
                     </tr>                 
                 <?php endforeach; ?>             
             </tbody>         

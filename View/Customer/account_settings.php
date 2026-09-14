@@ -40,7 +40,7 @@ $profilePhoto .= '?v=' . time();
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; min-height: 100vh; font-family: Arial, sans-serif; background: #5b3dcc; color: #fff; }
-        .page { min-height: 100vh; padding: 24px 7%; background: linear-gradient(rgba(91, 61, 204, .88), rgba(91, 61, 204, .88)), url('../images/Backgroundpic2 2.jpg') center / cover; }
+        .page { min-height: 100vh; padding: 24px 7%; background: linear-gradient(rgba(91, 61, 204, .88), rgba(91, 61, 204, .88)), url('/FixLine/View/images/Backgroundpic2 2.jpg') center / cover; }
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -97,7 +97,7 @@ $profilePhoto .= '?v=' . time();
                 <?php if ($tab === 'account'): ?>
                     <h2>Account management</h2>
                     <p>Make changes to your personal information or account type.</p>
-                    <form method="post" action="/FixLine/cindex.php?action=account_settings&tab=account">
+                    <form method="post" action="/FixLine/index.php?action=account_settings&tab=account">
                         <input type="hidden" name="settings_section" value="account">
                         <label>
                             Your account
@@ -133,7 +133,7 @@ $profilePhoto .= '?v=' . time();
                     </form>
                 <?php else: ?>
                     <h2>Profile</h2>
-                    <form method="post" action="/FixLine/cindex.php?action=account_settings&tab=profile" enctype="multipart/form-data">
+                    <form method="post" action="/FixLine/index.php?action=account_settings&tab=profile" enctype="multipart/form-data">
                         <input type="hidden" name="settings_section" value="profile">
                         <label>
                             Profile Photo

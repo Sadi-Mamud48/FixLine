@@ -98,9 +98,9 @@ class Customer {
         try {
             $sql = "INSERT INTO service_requests
                         (customer_id, provider_id, service_id, title, category, description, location, budget, status)
-                    SELECT :customer_id, sp.id, :request_service_id, :title, :category, :description, :location, :budget, 'new'
-                FROM service_providers sp
-                JOIN services s ON s.provider_id = sp.id
+                    SELECT :customer_id, NULL, :request_service_id, :title, :category, :description, :location, :budget, 'new'
+                FROM services s
+                JOIN service_providers sp ON sp.id = s.provider_id
                 WHERE sp.id = :provider_id AND s.id = :provider_service_id AND sp.status = 'approved'";
 
             $stmt = $this->db->prepare($sql);
@@ -258,6 +258,11 @@ class Customer {
 
     
     public function submitReview($bookingId, $userId, $serviceId, $rating, $comment) {
+        $rating = (int) $rating;
+        if ($rating < 1 || $rating > 5) {
+            throw new RuntimeException('Rating must be between 1 and 5.');
+        }
+
         $stmt = $this->db->prepare(
             "SELECT id FROM bookings
              WHERE id = :booking_id AND user_id = :user_id
@@ -274,17 +279,54 @@ class Customer {
             throw new RuntimeException('Reviews are available only after the service is completed.');
         }
 
+        $duplicate = $this->db->prepare(
+            'SELECT id FROM reviews WHERE booking_id = :booking_id AND user_id = :user_id LIMIT 1'
+        );
+        $duplicate->execute([':booking_id' => $bookingId, ':user_id' => $userId]);
+        if ($duplicate->fetch(PDO::FETCH_ASSOC)) {
+            throw new RuntimeException('You have already reviewed this service.');
+        }
+
         $sql = "INSERT INTO reviews (booking_id, user_id, service_id, rating, comment)
                 VALUES (:booking_id, :user_id, :service_id, :rating, :comment)";
         
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
+        $saved = $stmt->execute([
             ':booking_id'  => $bookingId,
             ':user_id' => $userId,
             ':service_id' => $serviceId,
             ':rating'      => $rating,
             ':comment'     => $comment
         ]);
+
+        if ($saved) {
+            $providerIdStmt = $this->db->prepare(
+                'SELECT provider_id FROM services WHERE id = :service_id'
+            );
+            $providerIdStmt->execute([':service_id' => $serviceId]);
+            $providerId = $providerIdStmt->fetchColumn();
+
+            if ($providerId === false) {
+                return $saved;
+            }
+
+            $provider = $this->db->prepare(
+                'UPDATE service_providers sp
+                 SET sp.rating = (
+                     SELECT ROUND(AVG(r.rating), 1)
+                     FROM reviews r
+                     JOIN services rated_service ON rated_service.id = r.service_id
+                     WHERE rated_service.provider_id = :rating_provider_id
+                 )
+                 WHERE sp.id = :where_provider_id'
+            );
+            $provider->execute([
+                ':rating_provider_id' => $providerId,
+                ':where_provider_id' => $providerId
+            ]);
+        }
+
+        return $saved;
     }
 
     public function cancelBooking($bookingId, $userId) {
@@ -339,7 +381,7 @@ class Customer {
              JOIN bookings b ON p.booking_id = b.id
              JOIN services s ON b.service_id = s.id
              LEFT JOIN refund_requests r ON r.payment_id = p.id
-             WHERE p.user_id = :user_id AND p.status = 'paid'
+             WHERE p.user_id = :user_id AND p.status IN ('paid', 'Refunded')
              ORDER BY p.paid_at DESC"
         );
         $stmt->execute([':user_id' => $userId]);

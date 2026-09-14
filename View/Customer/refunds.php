@@ -82,7 +82,7 @@ if (!isset($payments)) {
     <main class="page">
         <div class="page-header">
             <h1>Refund Request</h1>
-            <a href="/FixLine/View/Customer/customer_dashboard.php">Back to Dashboard</a>
+            <a href="/FixLine/index.php?action=customer_dashboard">Back to Dashboard</a>
         </div>
 
         <?php if ($refundMessage !== null): ?>
@@ -108,7 +108,7 @@ if (!isset($payments)) {
                         </p>
                         <p><strong>Reason:</strong> <?= htmlspecialchars($payment['refund_reason']) ?></p>
                     <?php else: ?>
-                        <form action="/FixLine/cindex.php?action=refunds" method="post">
+                        <form action="/FixLine/index.php?action=refunds" method="post">
                             <input type="hidden" name="payment_id" value="<?= (int) $payment['payment_id'] ?>">
                             <label>
                                 Reason for refund
