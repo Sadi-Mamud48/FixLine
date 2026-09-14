@@ -1,6 +1,3 @@
--- FixLine single-database setup
--- Paste this entire file into MariaDB/phpMyAdmin.
--- Initial account passwords are all: 123
 
 DROP DATABASE IF EXISTS fixline_db;
 CREATE DATABASE fixline_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -222,5 +219,4 @@ INSERT INTO services (provider_id, service_name, category, description, price)
 SELECT sp.id, 'Appliance Repair', 'repairer', 'Repair for common household appliances.', 1200.00 FROM service_providers sp JOIN users u ON u.id = sp.user_id WHERE u.email = 'repairer@example.com'
 AND NOT EXISTS (SELECT 1 FROM services s WHERE s.provider_id = sp.id AND s.category = 'repairer');
 
--- Verify the seeded accounts.
 SELECT id, name, email, role, status FROM users ORDER BY id;

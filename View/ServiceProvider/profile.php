@@ -1,5 +1,4 @@
 <?php
-// Expects: $provider (array), $message (string) — supplied by ServiceProviderController::profile()
 $activePage = 'profile';
 $serviceCategories = [
     'plumber' => 'Plumber',
@@ -33,7 +32,6 @@ $serviceCategories = [
                     </div>
                 <?php endif; ?>
 
-                <!-- ===== Profile picture uploader (AJAX + JSON) ===== -->
                 <div class="fx-picture-uploader">
                     <img id="fx-avatar-preview"
                          class="fx-avatar"
@@ -47,7 +45,6 @@ $serviceCategories = [
                     </div>
                 </div>
 
-                <!-- ===== Profile details form (plain POST, no AJAX needed) ===== -->
                 <form action="/FixLine/index.php?action=provider_profile" method="POST">
                     <div class="fx-form-group">
                         <label for="profession">Profession</label>

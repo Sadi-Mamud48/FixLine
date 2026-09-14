@@ -14,7 +14,6 @@ require_once __DIR__ . '/header.php';
             <div class="stat-box"><div>Bookings</div><div class="stat-num"><?php echo (int) ($dashboard['bookings'] ?? 0); ?></div></div>
             <div class="stat-box"><div>Pending Approval</div><div class="stat-num"><?php echo (int) ($dashboard['pending_providers'] ?? 0); ?></div></div>
         </div>
-        <!-- Analytics Button -->         
         <a href="index.php?action=analytics" class="nav-pill-btn">             
             <div class="avatar-circle">                 
                 <img src="View/images/analytics.png" alt="Analytics">
@@ -24,7 +23,6 @@ require_once __DIR__ . '/header.php';
             </div>         
         </a>          
 
-        <!-- Users Information Button -->         
         <a href="index.php?action=users_info" class="nav-pill-btn">             
             <div class="avatar-circle">                 
                 <img src="View/images/userinfo.png" alt="Users Info">             
@@ -34,7 +32,6 @@ require_once __DIR__ . '/header.php';
             </div>         
         </a>          
 
-        <!-- Account Management Button -->         
         <a href="index.php?action=account_management" class="nav-pill-btn">             
             <div class="avatar-circle">                 
                 <img src="View/images/accountmanagement.png" alt="Account Management">             

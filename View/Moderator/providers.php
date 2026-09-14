@@ -1,9 +1,7 @@
 <?php
-// FixLine/View/Moderator/providers.php
 require_once __DIR__ . '/../../Model/Moderator.php';
 $moderatorModel = new Moderator();
 
-// Handle Approve / Reject Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'], $_POST['provider_id'])) {
     $moderatorModel->updateProviderStatus($_POST['provider_id'], $_POST['action_type']);
     header("Location: /FixLine/index.php?action=moderator_providers");

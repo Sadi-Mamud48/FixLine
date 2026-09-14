@@ -1,5 +1,4 @@
 <?php
-// FixLine/View/Moderator/account_management.php
 require_once __DIR__ . '/../../Model/Moderator.php';
 $moderatorModel = new Moderator();
 

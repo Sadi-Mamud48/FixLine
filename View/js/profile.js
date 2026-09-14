@@ -1,12 +1,3 @@
-/**
- * FixLine - Profile picture uploader
- * -----------------------------------
- * Sends the chosen image to index.php?action=upload_picture
- * via fetch + FormData, and swaps the preview <img> once the server
- * responds with JSON. This is the only AJAX/JSON flow in the module —
- * everything else is plain form POST + PHP page reload.
- */
-
 document.addEventListener('DOMContentLoaded', function () {
     const chooseBtn   = document.getElementById('fx-choose-picture-btn');
     const fileInput   = document.getElementById('fx-picture-input');
@@ -15,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!chooseBtn || !fileInput) return;
 
-    // Clicking the styled button triggers the hidden native file input
     chooseBtn.addEventListener('click', function () {
         fileInput.click();
     });
@@ -24,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const file = fileInput.files[0];
         if (!file) return;
 
-        // Client-side sanity checks (server re-checks these too)
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             statusText.textContent = 'Only JPG, PNG or WEBP images are allowed.';
@@ -52,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(function (data) {
                 if (data.success) {
-                    preview.src = data.imageUrl + '?t=' + Date.now(); // cache-bust
+                    preview.src = data.imageUrl + '?t=' + Date.now();
                     statusText.textContent = data.message;
                     statusText.style.color = 'var(--fx-success)';
                 } else {

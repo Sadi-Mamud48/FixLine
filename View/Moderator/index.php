@@ -1,5 +1,4 @@
 <?php
-// FixLine/View/Moderator/index.php
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,9 +10,8 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     
-    /* Background Image Implementation */
    body { 
-      background-image: url('c:\Users\Acer\Downloads\Backgroundpic2 2.jpg.jpeg'); /* Adjust path or use an absolute URL */
+      background-image: url('c:\Users\Acer\Downloads\Backgroundpic2 2.jpg.jpeg');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -23,7 +21,6 @@
       overflow-x: hidden;
     }
     
-    /* Fullscreen Wrapper */
     .dashboard-wrapper { 
       width: 100%; 
       min-height: 100vh; 
@@ -31,7 +28,6 @@
     
     .dashboard-shadow { display: none; }
     
-    /* Transparent Container to Reveal Body Background */
     .dashboard-card { 
       position: relative; 
       z-index: 2; 
@@ -43,7 +39,6 @@
       flex-direction: column; 
     }
     
-    /* Translucent Overlay for Readable Content */
     .dashboard-main { 
       background: linear-gradient(135deg, rgba(74, 57, 162, 0.88) 0%, rgba(136, 107, 234, 0.88) 100%); 
       padding: 30px 60px 50px; 
@@ -79,7 +74,6 @@
 
     .illustration-bg { position: absolute; right: 40px; bottom: 0; width: 55%; height: 85%; background: url('/FixLine/View/images/Backgroundpic2%202.jpg.jpeg') no-repeat right bottom; background-size: contain; opacity: 0.85; pointer-events: none; }
     
-    /* Footer Styling */
     .footer { background-color: rgba(255, 255, 255, 0.95); padding: 30px 60px; display: flex; justify-content: space-between; align-items: flex-start; color: #333; border-top: 1px solid #e2e8f0; }
     .footer-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .footer-logo i { font-size: 32px; color: #333; }

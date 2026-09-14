@@ -33,19 +33,16 @@ require_once __DIR__ . '/header.php';
                 </div>                  
 
                 <div>                     
-                    <!-- Account Name Field -->                     
                     <div class="form-group">                         
                         <label>Account Name</label>                         
                         <input type="text" name="account_name" class="form-control" value="<?php echo htmlspecialchars($user['name']); ?>" required>                     
                     </div>                      
 
-                    <!-- Email Address Field -->                     
                     <div class="form-group">                         
                         <label>Email Address</label>                         
                         <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required>                     
                     </div>                      
 
-                    <!-- Role Selection Field -->                     
                     <div class="form-group">                         
                         <label>Role</label>                         
                         <select name="role" class="form-control">                             
@@ -67,13 +64,11 @@ require_once __DIR__ . '/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- Phone Number Field -->                     
                     <div class="form-group">                         
                         <label>Phone Number</label>                         
                         <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($user['phone']); ?>" required>                     
                     </div>                      
 
-                    <!-- Account Status Display -->                     
                     <p style="font-size: 13px; margin-top: 5px;">                         
                         Status:                          
                         <span class="status-badge <?php echo ($user['status'] === 'Active') ? 'status-active' : 'status-blocked'; ?>">                             
@@ -83,7 +78,6 @@ require_once __DIR__ . '/header.php';
                 </div>             
             </div>              
 
-            <!-- Action Buttons -->             
             <div class="button-row">                 
                 <button type="submit" class="btn-purple">Save</button>                 
                 <button type="button" class="btn-purple" onclick="alert('Password reset instructions sent to <?php echo htmlspecialchars($user['email']); ?>!')">Reset Password</button>                 
