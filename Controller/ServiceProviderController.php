@@ -1,14 +1,4 @@
 <?php
-/**
- * FixLine - Controller
- * -----------------------------------
- * ServiceProviderController.php
- *
- * Front controller for every Service Provider screen.
- * Routed through index.php?action=provider_dashboard|provider_profile|provider_requests|provider_apply_job|provider_earnings
- * Plus one AJAX-only endpoint: action=upload_picture (returns JSON).
- */
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -36,11 +26,9 @@ class ServiceProviderController
             }
         }
 
-        // Fallback for local demo/testing only.
         return 1;
     }
 
-    // Simple internal router based on ?action=
     public function handleRequest(): void
     {
         $action = $_GET['action'] ?? 'dashboard';
@@ -53,7 +41,7 @@ class ServiceProviderController
                 $this->profile();
                 break;
             case 'upload_picture':
-                $this->uploadProfilePicture(); // AJAX / JSON only
+                $this->uploadProfilePicture();
                 break;
             case 'requests':
                 $this->requests();
@@ -69,9 +57,6 @@ class ServiceProviderController
         }
     }
 
-    /* =========================================================
-     *  DASHBOARD
-     * ========================================================= */
     private function dashboard(): void
     {
         $provider = $this->model->getProfile($this->providerId);
@@ -81,14 +66,10 @@ class ServiceProviderController
         require __DIR__ . '/../View/ServiceProvider/dashboard.php';
     }
 
-    /* =========================================================
-     *  PROFILE  (view/edit info + profile picture upload trigger)
-     * ========================================================= */
     private function profile(): void
     {
         $message = '';
 
-        // Handle the text-field part of the profile form (normal POST, no AJAX)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_service'])) {
             $serviceId = (int) ($_POST['service_id'] ?? 0);
             $serviceName = trim($_POST['service_name'] ?? '');
@@ -131,12 +112,6 @@ class ServiceProviderController
         require __DIR__ . '/../View/ServiceProvider/profile.php';
     }
 
-    /* =========================================================
-     *  PROFILE PICTURE UPLOAD  (AJAX endpoint -> JSON response)
-     *  This is the ONE place in the module that uses JSON + AJAX,
-     *  because an instant preview/save without a full page reload
-     *  is genuinely needed here.
-     * ========================================================= */
     private function uploadProfilePicture(): void
     {
         header('Content-Type: application/json');
@@ -148,9 +123,8 @@ class ServiceProviderController
 
         $file = $_FILES['profile_picture'];
 
-        // --- Basic validation ---
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSizeBytes = 2 * 1024 * 1024; // 2 MB
+        $maxSizeBytes = 2 * 1024 * 1024;
 
         if ($file['error'] !== UPLOAD_ERR_OK) {
             echo json_encode(['success' => false, 'message' => 'Upload error. Please try again.']);
@@ -169,14 +143,12 @@ class ServiceProviderController
             return;
         }
 
-        // --- Build a unique filename and move the upload ---
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename  = 'provider_' . $this->providerId . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
 
-        // uploads/ lives at the project root, one level up from Controller/
         $uploadDir    = __DIR__ . '/../uploads/profile_pictures/';
         $uploadPathFs = $uploadDir . $filename;
-        $relativePath = 'uploads/profile_pictures/' . $filename; // root-relative: stored in DB + used as <img src="">
+        $relativePath = 'uploads/profile_pictures/' . $filename;
 
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0775, true);
@@ -195,7 +167,6 @@ class ServiceProviderController
             return;
         }
 
-        // Remove the old picture from disk (skip the default placeholder)
         $oldPath = $this->model->getProfilePicturePath($this->providerId);
         if ($oldPath && strpos($oldPath, 'default-avatar') === false) {
             $oldFullPath = __DIR__ . '/../' . $oldPath;
@@ -233,9 +204,6 @@ class ServiceProviderController
         return $provider;
     }
 
-    /* =========================================================
-     *  SERVICE REQUESTS INBOX
-     * ========================================================= */
     private function requests(): void
     {
         $message = '';
@@ -283,9 +251,6 @@ class ServiceProviderController
         require __DIR__ . '/../View/ServiceProvider/requests.php';
     }
 
-    /* =========================================================
-     *  APPLY FOR A JOB  (form submission, plain POST)
-     * ========================================================= */
     private function applyJob(): void
     {
         $message = '';
@@ -326,9 +291,6 @@ class ServiceProviderController
         require __DIR__ . '/../View/ServiceProvider/apply_job.php';
     }
 
-    /* =========================================================
-     *  EARNINGS
-     * ========================================================= */
     private function earnings(): void
     {
         $provider = $this->model->getProfile($this->providerId);

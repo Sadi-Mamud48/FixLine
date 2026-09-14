@@ -2,7 +2,6 @@
 $pageTitle = 'Home'; 
 $showBackBtn = true;  
 
-// Define back navigation depending on whether a category is currently selected 
 if (isset($category)) {     
     $backUrl = 'index.php?action=account_management'; 
 } else {     
@@ -19,7 +18,6 @@ require_once __DIR__ . '/header.php';
         <h2 style="color: #ffffff; margin-bottom: 8px; font-size: 24px;">Account Management</h2>          
 
         <?php if ($search !== ''): ?>             
-            <!-- SEARCH RESULT STATE -->             
             <p style="color: #ffdd59; font-size: 14px; margin-bottom: 12px; font-weight: bold;">                 
                 Search results for: "<?php echo htmlspecialchars($search); ?>"             
             </p>              
@@ -54,12 +52,10 @@ require_once __DIR__ . '/header.php';
             <?php endif; ?>          
 
         <?php elseif ($category === null): ?>             
-            <!-- STEP 1: CATEGORY SELECTION (Service Provider, Moderator, Customer) -->             
             <p style="color: #e0d8ff; font-size: 14px; margin-bottom: 15px;">                 
                 Select a user category to manage accounts:             
             </p>              
 
-            <!-- Option 1: Service Provider -->             
             <a href="index.php?action=account_management&category=provider" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/electrician.png" alt="Service Provider">                 
@@ -69,7 +65,6 @@ require_once __DIR__ . '/header.php';
                 </div>             
             </a>              
 
-            <!-- Option 2: Moderator -->             
             <a href="index.php?action=account_management&category=moderator" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/afnan.png" alt="Moderator">                 
@@ -79,7 +74,6 @@ require_once __DIR__ . '/header.php';
                 </div>             
             </a>              
 
-            <!-- Option 3: Customer / User -->             
             <a href="index.php?action=account_management&category=customer" class="nav-pill-btn">                 
                 <div class="avatar-circle">                     
                     <img src="View/images/userinfo.png" alt="Customer">                 
@@ -90,7 +84,6 @@ require_once __DIR__ . '/header.php';
             </a>          
 
         <?php else: ?>             
-            <!-- STEP 2: USER LIST UNDER SELECTED CATEGORY -->             
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">                 
                 <span style="color: #ffdd59; font-size: 16px; font-weight: bold;">                     
                     Category: <?php echo htmlspecialchars(ucfirst($category)); ?>                 

@@ -1,5 +1,4 @@
 <?php
-// Expects: $provider (array), $summary (array) — supplied by ServiceProviderController::dashboard()
 $activePage = 'dashboard';
 ?>
 <!DOCTYPE html>
@@ -18,7 +17,6 @@ $activePage = 'dashboard';
 
         <div class="fx-dashboard-body">
 
-            <!-- Left column: avatar + name + stats -->
             <div class="fx-profile-block">
                 <div class="fx-avatar-wrap">
                     <img class="fx-avatar"
@@ -69,7 +67,6 @@ $activePage = 'dashboard';
                 </div>
             </div>
 
-            <!-- Right column: bio -->
             <div class="fx-bio-box">
                 <h3>Bio</h3>
                 <p><?= nl2br(htmlspecialchars($provider['bio'] ?? 'No bio added yet. Update your profile to introduce yourself to customers.')) ?></p>

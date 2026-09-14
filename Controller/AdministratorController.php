@@ -14,7 +14,6 @@ class AdministratorController {
     public function handleRequest() {         
         $action = $_GET['action'] ?? 'login';          
 
-        // Check login state         
         if (!$this->isLoggedIn() && !in_array($action, ['login', 'do_login'])) {             
             header("Location: index.php?action=login");             
             exit;         
@@ -123,7 +122,6 @@ class AdministratorController {
         require_once __DIR__ . '/../View/Administrator/settings.php';     
     }      
 
-    // Update Email Handler     
     private function updateSettingsEmail() {         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {             
             $oldEmail = $_SESSION['logged_user'] ?? '';             
@@ -145,7 +143,6 @@ class AdministratorController {
         exit;     
     }      
 
-    // Update Password Handler     
     private function updateSettingsPass() {         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {             
             $email = $_SESSION['logged_user'] ?? '';             

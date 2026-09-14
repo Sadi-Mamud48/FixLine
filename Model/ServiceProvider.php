@@ -11,11 +11,6 @@ class ServiceProvider
         $this->db = Database::getConnection();
     }
 
-    /* =========================================================
-     *  PROFILE
-     * ========================================================= */
-
-    // Find the provider record tied to a logged-in user
     public function getProviderIdByUserId(int $userId): ?int
     {
         $sql = "SELECT id
@@ -30,7 +25,6 @@ class ServiceProvider
         return $row ? (int) $row['id'] : null;
     }
 
-    // Fetch the full profile (joined with users table) for one provider
     public function getProfile(int $providerId): ?array
     {
         $sql = "SELECT sp.*, u.name, u.email,
@@ -52,7 +46,6 @@ class ServiceProvider
         return $row ?: null;
     }
 
-    // Update editable profile fields (profession, affiliate, experience, bio)
     public function updateProfile(int $providerId, array $data): bool
     {
         $sql = "UPDATE service_providers
@@ -136,7 +129,6 @@ class ServiceProvider
         return $stmt->execute($params);
     }
 
-    // Save the new profile picture path (used by the AJAX upload endpoint)
     public function updateProfilePicture(int $providerId, string $relativePath): bool
     {
         $sql = "UPDATE service_providers SET profile_picture = :path WHERE id = :id";
@@ -148,7 +140,6 @@ class ServiceProvider
         ]);
     }
 
-    // Used to delete the old picture file before saving a new one
     public function getProfilePicturePath(int $providerId): ?string
     {
         $sql = "SELECT profile_picture FROM service_providers WHERE id = :id";
@@ -159,11 +150,6 @@ class ServiceProvider
         return $row ? $row['profile_picture'] : null;
     }
 
-    /* =========================================================
-     *  JOBS / APPLICATIONS
-     * ========================================================= */
-
-    // Open jobs that match the provider's profession and haven't been applied to yet
     public function getAvailableJobs(int $providerId, ?string $profession = null): array
     {
         $sql = "SELECT j.*
@@ -188,7 +174,6 @@ class ServiceProvider
         return $stmt->fetchAll();
     }
 
-    // Customer service requests that arrive in the provider inbox as message-like cards
     public function saveServiceRequest(int $customerId, int $providerId, array $data): bool
     {
         $sql = "INSERT INTO service_requests (customer_id, provider_id, title, category, description, location, budget, status)
@@ -369,7 +354,6 @@ class ServiceProvider
         ]);
     }
 
-    // Single job lookup (used before inserting an application)
     public function getJobById(int $jobId): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM jobs WHERE id = :id LIMIT 1");
@@ -379,7 +363,6 @@ class ServiceProvider
         return $row ?: null;
     }
 
-    // Insert a new job application ("apply for job" form)
     public function applyForJob(int $providerId, int $jobId, string $serviceName, string $coverNote, ?float $proposedPrice): bool
     {
         $job = $this->getJobById($jobId);
@@ -427,7 +410,6 @@ class ServiceProvider
         }
     }
 
-    // History of jobs this provider has applied to
     public function getAppliedJobs(int $providerId): array
     {
         $sql = "SELECT ja.*, j.title, j.category, j.location, j.budget, j.status AS job_status,
@@ -444,11 +426,6 @@ class ServiceProvider
         return $stmt->fetchAll();
     }
 
-    /* =========================================================
-     *  EARNINGS
-     * ========================================================= */
-
-    // Every earnings row (paid + pending) for the earnings table view
     public function getEarnings(int $providerId): array
     {
         $sql = "SELECT e.*, j.title AS job_title
@@ -463,7 +440,6 @@ class ServiceProvider
         return $stmt->fetchAll();
     }
 
-    // Quick totals used on the dashboard + earnings page header cards
     public function getEarningsSummary(int $providerId): array
     {
         $sql = "SELECT

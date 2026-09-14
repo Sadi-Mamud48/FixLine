@@ -68,8 +68,6 @@ class CustomerController
                             throw new RuntimeException('Please upload a valid JPG, PNG, or WEBP image.');
                         }
 
-                        // Keep user-uploaded files outside the view assets directory.
-                        // This is also the shared writable upload location used by provider profiles.
                         $directory = __DIR__ . '/../uploads/profile_pictures';
                         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
                             throw new RuntimeException('The profile-photo upload directory could not be created.');

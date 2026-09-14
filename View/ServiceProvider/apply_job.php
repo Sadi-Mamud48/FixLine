@@ -1,5 +1,4 @@
 <?php
-// Expects: $provider, $jobs, $appliedJobs, $message — supplied by ServiceProviderController::applyJob()
 $activePage = 'apply_job';
 ?>
 <!DOCTYPE html>
@@ -55,7 +54,6 @@ $activePage = 'apply_job';
                             </button>
                         </div>
 
-                        <!-- Hidden application form, revealed by the button above -->
                         <form action="/FixLine/index.php?action=provider_apply_job" method="POST"
                               class="fx-apply-form fx-card-solid" id="fx-apply-form-<?= (int) $job['id'] ?>" style="display:none;">
                             <input type="hidden" name="job_id" value="<?= (int) $job['id'] ?>">
@@ -128,8 +126,6 @@ $activePage = 'apply_job';
 </div>
 
 <script>
-    // Small UI-only interaction: toggle each job's application form.
-    // (Not AJAX — this just shows/hides a form that still submits as a normal POST.)
     document.querySelectorAll('.fx-apply-toggle').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const form = document.getElementById('fx-apply-form-' + btn.dataset.jobId);

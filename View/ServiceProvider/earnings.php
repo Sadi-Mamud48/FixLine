@@ -1,5 +1,4 @@
 <?php
-// Expects: $provider, $summary, $earnings — supplied by ServiceProviderController::earnings()
 $activePage = 'earnings';
 ?>
 <!DOCTYPE html>

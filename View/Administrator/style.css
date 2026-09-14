@@ -1,4 +1,3 @@
-/* FixLine - Full Screen Admin View Layout with Blended Background Illustration */ 
 * {    
     margin: 0;    
     padding: 0;    
@@ -13,7 +12,6 @@ html, body {
     overflow-x: hidden; 
 }  
 
-/* Full Screen Container - Taking Full Browser Frame */ 
 .window-container {    
     width: 100%;    
     min-height: 100vh;    
@@ -26,7 +24,6 @@ html, body {
     justify-content: space-between; 
 }  
 
-/* Navigation Header */ 
 .nav-header {    
     width: 100%;    
     display: flex;    
@@ -114,7 +111,6 @@ html, body {
     opacity: 0.8; 
 }  
 
-/* Main Content Section - Purple Radial Background */ 
 .main-content {    
     flex: 1;    
     width: 100%;    
@@ -128,7 +124,6 @@ html, body {
     overflow: hidden; 
 }  
 
-/* BLENDED BACKGROUND ILLUSTRATION (Full Background Fit) */ 
 .bg-illustration {        
     position: absolute;        
     top: 0;    
@@ -144,7 +139,6 @@ html, body {
     pointer-events: none;        
     z-index: 1; 
 }
-/* Sidebar Action Buttons */ 
 .actions-sidebar {    
     display: flex;    
     flex-direction: column;    
@@ -198,7 +192,6 @@ html, body {
     backdrop-filter: blur(4px); 
 }  
 
-/* Account Profile Card - Page 3 Overlay */ 
 .profile-card-overlay {    
     background: rgba(74, 52, 160, 0.92);    
     border-radius: 20px;    
@@ -307,7 +300,6 @@ html, body {
     color: #ffffff; 
 }  
 
-/* Glass Tables & Analytics Container */ 
 .glass-table-card {    
     background: rgba(35, 20, 90, 0.92);    
     border-radius: 16px;    
@@ -361,7 +353,6 @@ html, body {
     font-size: 15px; 
 }  
 
-/* Full Width Footer Bar */ 
 .footer-bar {    
     width: 100%;    
     background: #ffffff;    

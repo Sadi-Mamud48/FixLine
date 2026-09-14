@@ -1,5 +1,4 @@
 <?php
-// Expects: $provider, $incomingRequests, $message — supplied by ServiceProviderController::requests()
 $activePage = 'requests';
 ?>
 <!DOCTYPE html>

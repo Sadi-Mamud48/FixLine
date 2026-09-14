@@ -1,5 +1,4 @@
 <?php
-// Expects $activePage to be set by the including view (dashboard|profile|apply_job|earnings)
 $activePage = $activePage ?? '';
 ?>
 <div class="fx-navbar">

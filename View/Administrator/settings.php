@@ -20,7 +20,6 @@ require_once __DIR__ . '/header.php';
             </div>         
         <?php endif; ?>          
 
-        <!-- 1. Change Email Section -->         
         <form action="index.php?action=update_settings_email" method="POST" style="margin-bottom: 22px; background: rgba(0,0,0,0.22); padding: 20px; border-radius: 10px; border: 1px solid #785be8;">             
             <h3 style="color: #ffdd59; font-size: 16px; margin-bottom: 15px;">                 
                 <i class="fa-regular fa-envelope"></i> Change Email Address             
@@ -41,7 +40,6 @@ require_once __DIR__ . '/header.php';
             </button>         
         </form>          
 
-        <!-- 2. Change Password Section -->         
         <form action="index.php?action=update_settings_pass" method="POST" style="margin-bottom: 25px; background: rgba(0,0,0,0.22); padding: 20px; border-radius: 10px; border: 1px solid #785be8;">             
             <h3 style="color: #ffdd59; font-size: 16px; margin-bottom: 15px;">                 
                 <i class="fa-solid fa-key"></i> Change Password             
@@ -62,7 +60,6 @@ require_once __DIR__ . '/header.php';
             </button>         
         </form>          
 
-        <!-- 3. Logout Button -->         
         <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 20px;">             
             <a href="index.php?action=logout" class="btn-purple" style="background: #e74c3c; padding: 12px 35px; font-size: 15px; display: inline-block; text-decoration: none;">                 
                 <i class="fa-solid fa-right-from-bracket"></i> Logout             
